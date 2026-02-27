@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { GameState, GameStatus } from '../types'
 import HangmanSvg from './HangmanSvg'
 import WordDisplay from './WordDisplay'
@@ -21,7 +21,7 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
 
   const wrongCount = game.maxWrong - game.wrongGuessesLeft
 
-  async function handleGuess(letter: string) {
+  const handleGuess = useCallback(async (letter: string) => {
     setLoading(true)
     setError(null)
     try {
@@ -55,7 +55,7 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
     } finally {
       setLoading(false)
     }
-  }
+  }, [game, onGameEnd])
 
   async function handleSolve() {
     const word = solveInput.trim()
