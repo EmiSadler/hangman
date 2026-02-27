@@ -119,7 +119,7 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
             />
             <div className="solve-form__actions">
               <button
-                className="btn-difficulty"
+                className="btn-submit"
                 onClick={handleSolve}
                 disabled={loading || !solveInput.trim()}
               >
