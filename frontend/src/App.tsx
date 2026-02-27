@@ -47,9 +47,11 @@ export default function App() {
   }
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', textAlign: 'center' }}>
-      <p>{score.wins} win{score.wins !== 1 ? 's' : ''} / {score.losses} loss{score.losses !== 1 ? 'es' : ''}</p>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div className="app">
+      <div className="score-pill">
+        {score.wins} win{score.wins !== 1 ? 's' : ''} / {score.losses} loss{score.losses !== 1 ? 'es' : ''}
+      </div>
+      {error && <p className="app__error">{error}</p>}
       {game === null ? (
         <GameSetup onStart={handleStart} />
       ) : (

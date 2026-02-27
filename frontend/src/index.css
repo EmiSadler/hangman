@@ -206,3 +206,46 @@ button:disabled {
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
+
+/* ── App layout ────────────────────────────────────────── */
+
+.app {
+  position: relative;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  text-align: center;
+}
+
+.score-pill {
+  position: absolute;
+  top: 1.5rem;
+  right: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.app__error {
+  color: var(--wrong);
+  font-size: 0.95rem;
+}
+
+/* ── GameBoard layout ──────────────────────────────────── */
+
+.game-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wrong-count {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}

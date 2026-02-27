@@ -58,11 +58,13 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
   const isOver = game.status !== 'in_progress'
 
   return (
-    <div>
+    <div className="game-board">
       <HangmanSvg wrongCount={wrongCount} />
       <WordDisplay maskedWord={game.maskedWord} />
-      <p>Wrong guesses left: {game.wrongGuessesLeft}</p>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <p className="wrong-count">
+        {game.wrongGuessesLeft} guess{game.wrongGuessesLeft !== 1 ? 'es' : ''} remaining
+      </p>
+      {error && <p className="app__error">{error}</p>}
       <Keyboard
         guessedLetters={game.guessedLetters}
         correctLetters={correctLetters}
