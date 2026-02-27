@@ -6,6 +6,8 @@ from game import new_game, make_guess, mask_word
 app = Flask(__name__)
 CORS(app)
 
+# NOTE: games are never evicted from this dict (acceptable for a prototype,
+# would need TTL or cleanup for production use).
 games: dict[str, dict] = {}
 
 

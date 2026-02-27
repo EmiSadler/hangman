@@ -1,12 +1,14 @@
 import json
 import pytest
-from app import app
+from app import app, games
 
 @pytest.fixture
 def client():
     app.config["TESTING"] = True
+    games.clear()
     with app.test_client() as client:
         yield client
+    games.clear()
 
 # --- POST /api/game ---
 
@@ -48,7 +50,6 @@ def test_guess_correct_letter(client):
     game_id = resp.get_json()["game_id"]
 
     # Patch the word for determinism
-    from app import games
     games[game_id]["word"] = "cat"
 
     resp = client.post(f"/api/game/{game_id}/guess", json={"letter": "a"})
@@ -60,7 +61,6 @@ def test_guess_correct_letter(client):
 def test_guess_wrong_letter_decrements(client):
     resp = client.post("/api/game", json={"difficulty": "easy"})
     game_id = resp.get_json()["game_id"]
-    from app import games
     games[game_id]["word"] = "cat"
 
     resp = client.post(f"/api/game/{game_id}/guess", json={"letter": "z"})
@@ -71,7 +71,6 @@ def test_guess_wrong_letter_decrements(client):
 def test_guess_duplicate_returns_400(client):
     resp = client.post("/api/game", json={"difficulty": "easy"})
     game_id = resp.get_json()["game_id"]
-    from app import games
     games[game_id]["word"] = "cat"
 
     client.post(f"/api/game/{game_id}/guess", json={"letter": "a"})
@@ -85,9 +84,31 @@ def test_guess_unknown_game_id_returns_404(client):
 def test_guess_win_sets_status(client):
     resp = client.post("/api/game", json={"difficulty": "easy"})
     game_id = resp.get_json()["game_id"]
-    from app import games
     games[game_id]["word"] = "hi"
 
     client.post(f"/api/game/{game_id}/guess", json={"letter": "h"})
     resp = client.post(f"/api/game/{game_id}/guess", json={"letter": "i"})
     assert resp.get_json()["status"] == "won"
+
+def test_guess_after_game_over_returns_400(client):
+    resp = client.post("/api/game", json={"difficulty": "easy"})
+    game_id = resp.get_json()["game_id"]
+    games[game_id]["word"] = "hi"
+    games[game_id]["status"] = "won"
+
+    resp = client.post(f"/api/game/{game_id}/guess", json={"letter": "a"})
+    assert resp.status_code == 400
+
+def test_guess_invalid_letter_returns_400(client):
+    resp = client.post("/api/game", json={"difficulty": "easy"})
+    game_id = resp.get_json()["game_id"]
+
+    resp = client.post(f"/api/game/{game_id}/guess", json={"letter": "123"})
+    assert resp.status_code == 400
+
+def test_guess_missing_letter_returns_400(client):
+    resp = client.post("/api/game", json={"difficulty": "easy"})
+    game_id = resp.get_json()["game_id"]
+
+    resp = client.post(f"/api/game/{game_id}/guess", json={})
+    assert resp.status_code == 400
