@@ -25,7 +25,7 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
     setLoading(true)
     setError(null)
     try {
-      const resp = await fetch(`/api/game/${game.gameId}/guess`, {
+      const resp = await fetch(`/api/game/${initialState.gameId}/guess`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ letter }),
@@ -36,7 +36,8 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
         return
       }
       const updated: GameState = {
-        ...game,
+        gameId: initialState.gameId,
+        maxWrong: initialState.maxWrong,
         maskedWord: data.masked_word,
         wrongGuessesLeft: data.wrong_guesses_left,
         guessedLetters: data.guessed_letters,
@@ -55,7 +56,7 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
     } finally {
       setLoading(false)
     }
-  }, [game, onGameEnd])
+  }, [initialState, onGameEnd])
 
   async function handleSolve() {
     const word = solveInput.trim()

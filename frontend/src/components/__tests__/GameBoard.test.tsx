@@ -138,4 +138,30 @@ describe('GameBoard', () => {
       )
     })
   })
+
+  it('does not call fetch when an already-guessed letter key is pressed', async () => {
+    const mockFetch = vi.fn()
+    vi.stubGlobal('fetch', mockFetch)
+
+    const stateWithGuessed = { ...mockInitialState, guessedLetters: ['a'] }
+    render(<GameBoard initialState={stateWithGuessed} onGameEnd={vi.fn()} onPlayAgain={vi.fn()} />)
+
+    fireEvent.keyDown(window, { key: 'a' })
+
+    await new Promise((r) => setTimeout(r, 0))
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  it('does not call fetch when a letter key is pressed while in solve mode', async () => {
+    const mockFetch = vi.fn()
+    vi.stubGlobal('fetch', mockFetch)
+
+    render(<GameBoard initialState={mockInitialState} onGameEnd={vi.fn()} onPlayAgain={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /solve puzzle/i }))
+
+    fireEvent.keyDown(window, { key: 'b' })
+
+    await new Promise((r) => setTimeout(r, 0))
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
 })
