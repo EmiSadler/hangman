@@ -1,5 +1,5 @@
 import pytest
-from game import load_words, select_word, new_game, mask_word, make_guess
+from game import load_words, select_word, new_game, mask_word, make_guess, solve_word
 
 # --- load_words ---
 
@@ -128,3 +128,59 @@ def test_make_guess_after_game_over_raises():
 
 def test_mask_word_repeated_letters():
     assert mask_word("boot", ["o"]) == "_ o o _"
+
+# --- solve_word ---
+
+def test_solve_word_correct_wins():
+    game = new_game("easy")
+    game["word"] = "cat"
+    result = solve_word(game, "cat")
+    assert result["correct"] is True
+    assert result["status"] == "won"
+
+def test_solve_word_correct_reveals_masked_word():
+    game = new_game("easy")
+    game["word"] = "cat"
+    result = solve_word(game, "cat")
+    assert result["masked_word"] == "c a t"
+
+def test_solve_word_wrong_decrements():
+    game = new_game("easy")
+    game["word"] = "cat"
+    result = solve_word(game, "dog")
+    assert result["correct"] is False
+    assert result["wrong_guesses_left"] == game["max_wrong"] - 1
+    assert result["status"] == "in_progress"
+
+def test_solve_word_wrong_causes_loss():
+    game = new_game("hard")  # max_wrong == 4
+    game["word"] = "cat"
+    game["wrong_count"] = 3   # one guess left
+    result = solve_word(game, "dog")
+    assert result["status"] == "lost"
+    assert result["word"] == "cat"
+
+def test_solve_word_case_insensitive():
+    game = new_game("easy")
+    game["word"] = "cat"
+    result = solve_word(game, "CAT")
+    assert result["correct"] is True
+
+def test_solve_word_game_over_raises():
+    game = new_game("easy")
+    game["word"] = "cat"
+    game["status"] = "won"
+    with pytest.raises(ValueError, match="already over"):
+        solve_word(game, "cat")
+
+def test_solve_word_empty_raises():
+    game = new_game("easy")
+    game["word"] = "cat"
+    with pytest.raises(ValueError, match="non-empty"):
+        solve_word(game, "")
+
+def test_solve_word_whitespace_only_raises():
+    game = new_game("easy")
+    game["word"] = "cat"
+    with pytest.raises(ValueError, match="non-empty"):
+        solve_word(game, "   ")

@@ -66,3 +66,29 @@ def make_guess(game: dict, letter: str) -> dict:
         "status": game["status"],
         "word": game["word"] if game["status"] == "lost" else None,
     }
+
+def solve_word(game: dict, word: str) -> dict:
+    if game["status"] != "in_progress":
+        raise ValueError("Game is already over")
+    word = word.strip().lower()
+    if not word:
+        raise ValueError("Guess must be a non-empty word")
+
+    correct = word == game["word"]
+    if correct:
+        game["status"] = "won"
+    else:
+        game["wrong_count"] += 1
+        if game["wrong_count"] >= game["max_wrong"]:
+            game["status"] = "lost"
+
+    # On a correct solve reveal the full word; otherwise show current masked state
+    masked = " ".join(game["word"]) if correct else mask_word(game["word"], game["guessed_letters"])
+    return {
+        "correct": correct,
+        "masked_word": masked,
+        "wrong_guesses_left": game["max_wrong"] - game["wrong_count"],
+        "guessed_letters": list(game["guessed_letters"]),
+        "status": game["status"],
+        "word": game["word"] if game["status"] == "lost" else None,
+    }
