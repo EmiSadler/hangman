@@ -5,34 +5,37 @@ interface Props {
   disabled: boolean
 }
 
-const LETTERS = 'abcdefghijklmnopqrstuvwxyz'.split('')
+const ROWS = [
+  ['q','w','e','r','t','y','u','i','o','p'],
+  ['a','s','d','f','g','h','j','k','l'],
+  ['z','x','c','v','b','n','m'],
+]
 
 export default function Keyboard({ guessedLetters, correctLetters, onGuess, disabled }: Props) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxWidth: '400px' }}>
-      {LETTERS.map((letter) => {
-        const wasGuessed = guessedLetters.includes(letter)
-        const wasCorrect = correctLetters.includes(letter)
-        return (
-          <button
-            key={letter}
-            onClick={() => onGuess(letter)}
-            disabled={disabled || wasGuessed}
-            style={{
-              width: '36px',
-              height: '36px',
-              backgroundColor: wasGuessed ? (wasCorrect ? '#4caf50' : '#f44336') : '#e0e0e0',
-              color: wasGuessed ? 'white' : 'black',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: wasGuessed || disabled ? 'default' : 'pointer',
-              fontWeight: 'bold',
-            }}
-          >
-            {letter.toUpperCase()}
-          </button>
-        )
-      })}
+    <div className="keyboard">
+      {ROWS.map((row, ri) => (
+        <div key={ri} className="keyboard__row">
+          {row.map((letter) => {
+            const wasGuessed = guessedLetters.includes(letter)
+            const wasCorrect = correctLetters.includes(letter)
+            const keyClass = [
+              'key',
+              wasGuessed ? (wasCorrect ? 'key--correct' : 'key--wrong') : '',
+            ].filter(Boolean).join(' ')
+            return (
+              <button
+                key={letter}
+                className={keyClass}
+                onClick={() => onGuess(letter)}
+                disabled={disabled || wasGuessed}
+              >
+                {letter.toUpperCase()}
+              </button>
+            )
+          })}
+        </div>
+      ))}
     </div>
   )
 }

@@ -121,3 +121,54 @@ button:disabled {
   color: var(--border);
   border-bottom-color: var(--border);
 }
+
+/* ── Keyboard ──────────────────────────────────────────── */
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 1rem 0;
+}
+
+.keyboard__row {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.key {
+  width: 2.2rem;
+  height: 2.4rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 2px 0 var(--border);
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: background 0.1s, transform 0.1s;
+}
+
+.key:not(:disabled):hover {
+  background: var(--border);
+  transform: translateY(-1px);
+}
+
+.key:disabled {
+  opacity: 0.5;
+}
+
+.key--correct {
+  background: var(--correct);
+  color: #fff;
+  border-color: var(--correct);
+  box-shadow: none;
+}
+
+.key--wrong {
+  background: var(--wrong);
+  color: #fff;
+  border-color: var(--wrong);
+  box-shadow: none;
+}
