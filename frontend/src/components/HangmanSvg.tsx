@@ -5,6 +5,7 @@ interface Props {
 const STROKE = '#5c3d2e'
 
 export default function HangmanSvg({ wrongCount }: Props) {
+  const count = Math.min(wrongCount, 6)
   return (
     <div className="hangman-card">
       <svg viewBox="0 0 200 250" width="200" height="250" aria-label="hangman figure">
@@ -14,22 +15,22 @@ export default function HangmanSvg({ wrongCount }: Props) {
         <line x1="60" y1="20"  x2="130" y2="20"  stroke={STROKE} strokeWidth="5" strokeLinecap="round" />
         <line x1="130" y1="20" x2="130" y2="50"  stroke={STROKE} strokeWidth="5" strokeLinecap="round" />
 
-        {wrongCount >= 1 && (
-          <circle data-part="head" cx="130" cy="70" r="20" stroke={STROKE} strokeWidth="4" fill="none" strokeLinecap="round" />
+        {count >= 1 && (
+          <circle data-part="head" cx="130" cy="70" r="20" stroke={STROKE} strokeWidth="4" fill="none" />
         )}
-        {wrongCount >= 2 && (
+        {count >= 2 && (
           <line data-part="body" x1="130" y1="90" x2="130" y2="150" stroke={STROKE} strokeWidth="4" strokeLinecap="round" />
         )}
-        {wrongCount >= 3 && (
+        {count >= 3 && (
           <line data-part="left-arm" x1="130" y1="110" x2="100" y2="140" stroke={STROKE} strokeWidth="4" strokeLinecap="round" />
         )}
-        {wrongCount >= 4 && (
+        {count >= 4 && (
           <line data-part="right-arm" x1="130" y1="110" x2="160" y2="140" stroke={STROKE} strokeWidth="4" strokeLinecap="round" />
         )}
-        {wrongCount >= 5 && (
+        {count >= 5 && (
           <line data-part="left-leg" x1="130" y1="150" x2="100" y2="190" stroke={STROKE} strokeWidth="4" strokeLinecap="round" />
         )}
-        {wrongCount >= 6 && (
+        {count >= 6 && (
           <line data-part="right-leg" x1="130" y1="150" x2="160" y2="190" stroke={STROKE} strokeWidth="4" strokeLinecap="round" />
         )}
       </svg>
