@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import GameBoard from '../GameBoard'
@@ -108,6 +108,34 @@ describe('GameBoard', () => {
 
     await waitFor(() => {
       expect(onGameEnd).toHaveBeenCalledWith('won')
+    })
+  })
+
+  it('triggers a guess when a letter key is pressed', async () => {
+    const guessResponse = {
+      correct: false,
+      masked_word: '_ _ _',
+      wrong_guesses_left: 5,
+      guessed_letters: ['a'],
+      status: 'in_progress',
+      word: null,
+    }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => guessResponse,
+    }))
+
+    render(<GameBoard initialState={mockInitialState} onGameEnd={vi.fn()} onPlayAgain={vi.fn()} />)
+
+    fireEvent.keyDown(window, { key: 'a' })
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        `/api/game/test-id/guess`,
+        expect.objectContaining({
+          body: JSON.stringify({ letter: 'a' }),
+        })
+      )
     })
   })
 })

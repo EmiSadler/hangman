@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { GameState, GameStatus } from '../types'
 import HangmanSvg from './HangmanSvg'
 import WordDisplay from './WordDisplay'
@@ -95,6 +95,18 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
   }
 
   const isOver = game.status !== 'in_progress'
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (isOver || loading || solvingMode) return
+      const letter = e.key.toLowerCase()
+      if (letter.length !== 1 || !/^[a-z]$/.test(letter)) return
+      if (game.guessedLetters.includes(letter)) return
+      handleGuess(letter)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOver, loading, solvingMode, game.guessedLetters, handleGuess])
 
   return (
     <div className="game-board">
