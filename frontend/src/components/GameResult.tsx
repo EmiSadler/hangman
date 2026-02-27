@@ -8,10 +8,14 @@ interface Props {
 
 export default function GameResult({ status, word, onPlayAgain }: Props) {
   return (
-    <div>
-      <h2>{status === 'won' ? 'You Won!' : 'Game Over!'}</h2>
-      <p>The word was: <strong>{word}</strong></p>
-      <button onClick={onPlayAgain}>Play Again</button>
+    <div className="game-result">
+      <h2 className={status === 'won' ? 'game-result__title--won' : 'game-result__title--lost'}>
+        {status === 'won' ? 'You Won! 🎉' : 'Game Over!'}
+      </h2>
+      <p className="game-result__word">
+        The word was: <strong>{word}</strong>
+      </p>
+      <button className="btn-difficulty" onClick={onPlayAgain}>Play Again</button>
     </div>
   )
 }
