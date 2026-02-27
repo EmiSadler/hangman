@@ -15,6 +15,7 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
   const [game, setGame] = useState<GameState>(initialState)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [correctLetters, setCorrectLetters] = useState<string[]>([])
 
   const wrongCount = game.maxWrong - game.wrongGuessesLeft
 
@@ -40,6 +41,9 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
         status: data.status as GameStatus,
         word: data.word ?? undefined,
       }
+      if (data.correct) {
+        setCorrectLetters((prev) => [...prev, letter])
+      }
       setGame(updated)
       if (updated.status === 'won' || updated.status === 'lost') {
         onGameEnd(updated.status)
@@ -51,7 +55,6 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
     }
   }
 
-  const correctLetters = game.guessedLetters.filter((l) => game.maskedWord.includes(l))
   const isOver = game.status !== 'in_progress'
 
   return (
@@ -69,7 +72,7 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
       {isOver && (
         <GameResult
           status={game.status}
-          word={game.word ?? game.maskedWord}
+          word={game.word ?? game.maskedWord.replace(/ /g, '')}
           onPlayAgain={onPlayAgain}
         />
       )}
