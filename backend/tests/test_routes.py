@@ -112,3 +112,58 @@ def test_guess_missing_letter_returns_400(client):
 
     resp = client.post(f"/api/game/{game_id}/guess", json={})
     assert resp.status_code == 400
+
+# --- POST /api/game/<game_id>/solve ---
+
+def test_solve_correct_wins(client):
+    resp = client.post("/api/game", json={"difficulty": "easy"})
+    game_id = resp.get_json()["game_id"]
+    games[game_id]["word"] = "cat"
+
+    resp = client.post(f"/api/game/{game_id}/solve", json={"word": "cat"})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["correct"] is True
+    assert data["status"] == "won"
+
+def test_solve_wrong_decrements(client):
+    resp = client.post("/api/game", json={"difficulty": "easy"})
+    game_id = resp.get_json()["game_id"]
+    games[game_id]["word"] = "cat"
+
+    resp = client.post(f"/api/game/{game_id}/solve", json={"word": "dog"})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["correct"] is False
+    assert data["wrong_guesses_left"] == 7   # easy max_wrong=8, minus 1
+
+def test_solve_wrong_causes_loss(client):
+    resp = client.post("/api/game", json={"difficulty": "hard"})  # max_wrong=4
+    game_id = resp.get_json()["game_id"]
+    games[game_id]["word"] = "cat"
+    games[game_id]["wrong_count"] = 3        # one guess left
+
+    resp = client.post(f"/api/game/{game_id}/solve", json={"word": "dog"})
+    data = resp.get_json()
+    assert data["status"] == "lost"
+    assert data["word"] == "cat"
+
+def test_solve_unknown_game_returns_404(client):
+    resp = client.post("/api/game/nonexistent-id/solve", json={"word": "cat"})
+    assert resp.status_code == 404
+
+def test_solve_after_game_over_returns_400(client):
+    resp = client.post("/api/game", json={"difficulty": "easy"})
+    game_id = resp.get_json()["game_id"]
+    games[game_id]["word"] = "cat"
+    games[game_id]["status"] = "won"
+
+    resp = client.post(f"/api/game/{game_id}/solve", json={"word": "cat"})
+    assert resp.status_code == 400
+
+def test_solve_missing_word_returns_400(client):
+    resp = client.post("/api/game", json={"difficulty": "easy"})
+    game_id = resp.get_json()["game_id"]
+
+    resp = client.post(f"/api/game/{game_id}/solve", json={})
+    assert resp.status_code == 400
