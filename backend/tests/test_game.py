@@ -110,3 +110,21 @@ def test_make_guess_masked_word_updates():
     game["word"] = "cat"
     result = make_guess(game, "a")
     assert result["masked_word"] == "_ a _"
+
+def test_make_guess_empty_string_raises():
+    game = new_game("easy")
+    game["word"] = "cat"
+    with pytest.raises(ValueError, match="single letter"):
+        make_guess(game, "")
+
+def test_make_guess_after_game_over_raises():
+    game = new_game("hard")  # 4 max wrong
+    game["word"] = "cat"
+    for letter in ["z", "x", "q", "v"]:
+        make_guess(game, letter)
+    assert game["status"] == "lost"
+    with pytest.raises(ValueError, match="already over"):
+        make_guess(game, "c")
+
+def test_mask_word_repeated_letters():
+    assert mask_word("boot", ["o"]) == "_ o o _"

@@ -21,6 +21,8 @@ def select_word(difficulty: str) -> str:
         pool = [w for w in words if len(w) >= 9]
     else:
         raise ValueError(f"Invalid difficulty: {difficulty}")
+    if not pool:
+        raise ValueError(f"No words available for difficulty '{difficulty}'")
     return random.choice(pool)
 
 def mask_word(word: str, guessed_letters: list[str]) -> str:
@@ -38,6 +40,8 @@ def new_game(difficulty: str) -> dict:
     }
 
 def make_guess(game: dict, letter: str) -> dict:
+    if game["status"] != "in_progress":
+        raise ValueError("Game is already over")
     letter = letter.lower()
     if not (len(letter) == 1 and letter.isalpha()):
         raise ValueError("Guess must be a single letter")
