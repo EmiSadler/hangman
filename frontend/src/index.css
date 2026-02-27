@@ -39,3 +39,47 @@ button {
 button:disabled {
   cursor: default;
 }
+
+/* ── GameSetup ─────────────────────────────────────────── */
+
+.game-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+
+.game-setup__subtitle {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.game-setup__buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-difficulty {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-difficulty:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.btn-difficulty:active {
+  transform: translateY(0);
+}
