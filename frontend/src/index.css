@@ -93,3 +93,31 @@ button:disabled {
   border-radius: 12px;
   padding: 1rem;
 }
+
+/* ── WordDisplay ───────────────────────────────────────── */
+
+.word-display {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 1.5rem 0;
+}
+
+.letter-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2.5rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  border-bottom: 3px solid var(--accent);
+}
+
+.letter-tile--blank {
+  color: var(--border);
+  border-bottom-color: var(--border);
+}
