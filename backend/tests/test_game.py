@@ -167,3 +167,42 @@ def test_solve_word_whitespace_only_raises():
     game["word"] = "cat"
     with pytest.raises(ValueError, match="non-empty"):
         solve_word(game, "   ")
+
+# --- select_word room_type ---
+
+def test_select_word_enemy_returns_any_word():
+    word = select_word(room_type='enemy')
+    assert word in load_words()
+
+def test_select_word_boss_returns_word_length_gte_8():
+    for _ in range(20):
+        word = select_word(room_type='boss')
+        assert len(word) >= 8, f"boss word '{word}' is shorter than 8 letters"
+
+def test_select_word_boss_word_in_word_list():
+    word = select_word(room_type='boss')
+    assert word in load_words()
+
+def test_select_word_invalid_room_type_raises():
+    with pytest.raises(ValueError, match="room_type"):
+        select_word(room_type='invalid')
+
+# --- new_game room_type + hint ---
+
+def test_new_game_boss_word_length_gte_8():
+    for _ in range(10):
+        game = new_game(room_type='boss')
+        assert len(game["word"]) >= 8
+
+def test_new_game_hint_true_has_one_guessed_letter():
+    game = new_game(hint=True)
+    assert len(game["guessed_letters"]) == 1
+    assert game["guessed_letters"][0] in game["word"]
+
+def test_new_game_hint_false_has_no_guessed_letters():
+    game = new_game(hint=False)
+    assert game["guessed_letters"] == []
+
+def test_new_game_hint_default_is_false():
+    game = new_game()
+    assert game["guessed_letters"] == []

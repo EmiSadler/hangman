@@ -152,3 +152,29 @@ def test_solve_missing_word_returns_400(client):
 
     resp = client.post(f"/api/game/{game_id}/solve", json={})
     assert resp.status_code == 400
+
+# --- POST /api/game room_type + hint ---
+
+def test_new_game_boss_room_type_returns_long_word(client):
+    for _ in range(5):
+        resp = client.post("/api/game", json={"room_type": "boss"})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        # masked_word is "_ _ _ ..." — count underscores = word length
+        underscores = data["masked_word"].replace(" ", "")
+        assert len(underscores) >= 8
+
+def test_new_game_invalid_room_type_returns_400(client):
+    resp = client.post("/api/game", json={"room_type": "dragon"})
+    assert resp.status_code == 400
+    assert "room_type" in resp.get_json().get("error", "")
+
+def test_new_game_hint_true_has_guessed_letter(client):
+    resp = client.post("/api/game", json={"hint": True})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert len(data["guessed_letters"]) == 1
+
+def test_new_game_omitting_room_type_defaults_to_enemy(client):
+    resp = client.post("/api/game")
+    assert resp.status_code == 200

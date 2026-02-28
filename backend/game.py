@@ -11,18 +11,25 @@ def load_words() -> list[str]:
             _WORDS = [line.strip().lower() for line in f if line.strip().isalpha()]
     return _WORDS
 
-def select_word() -> str:
+def select_word(room_type: str = 'enemy') -> str:
+    if room_type not in ('enemy', 'boss'):
+        raise ValueError(f"Invalid room_type: {room_type!r}")
     words = load_words()
+    if room_type == 'boss':
+        words = [w for w in words if len(w) >= 8]
     return random.choice(words)
 
 def mask_word(word: str, guessed_letters: list[str]) -> str:
     return " ".join(c if c in guessed_letters else "_" for c in word)
 
-def new_game() -> dict:
-    word = select_word()
+def new_game(room_type: str = 'enemy', hint: bool = False) -> dict:
+    word = select_word(room_type)
+    guessed: list[str] = []
+    if hint:
+        guessed = [random.choice(list(word))]
     return {
         "word": word,
-        "guessed_letters": [],
+        "guessed_letters": guessed,
         "max_wrong": 6,
         "wrong_count": 0,
         "status": "in_progress",
