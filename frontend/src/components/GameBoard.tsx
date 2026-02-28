@@ -9,9 +9,10 @@ interface Props {
   initialState: GameState
   onGameEnd: (result: 'won' | 'lost', wrongGuessesMade: number) => void
   onPlayAgain: () => void
+  playAgainLabel?: string
 }
 
-export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Props) {
+export default function GameBoard({ initialState, onGameEnd, onPlayAgain, playAgainLabel }: Props) {
   const [game, setGame] = useState<GameState>(initialState)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -168,6 +169,7 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
           status={game.status}
           word={game.word ?? game.maskedWord.replace(/ /g, '')}
           onPlayAgain={onPlayAgain}
+          buttonLabel={playAgainLabel}
         />
       )}
     </div>

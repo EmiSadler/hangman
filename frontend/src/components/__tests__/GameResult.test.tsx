@@ -25,4 +25,9 @@ describe('GameResult', () => {
     await userEvent.click(screen.getByRole('button', { name: /play again/i }))
     expect(onPlayAgain).toHaveBeenCalled()
   })
+
+  it('shows custom buttonLabel when provided', () => {
+    render(<GameResult status="lost" word="python" onPlayAgain={vi.fn()} buttonLabel="Continue" />)
+    expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument()
+  })
 })

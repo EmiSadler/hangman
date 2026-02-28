@@ -35,6 +35,8 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     onCombatEnd(pendingRunRef.current ?? run)
   }
 
+  const playAgainLabel = displayRun.hp <= 0 ? 'Play Again' : 'Continue'
+
   return (
     <div className="combat-view">
       <div className="combat-view__stats">
@@ -46,6 +48,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         initialState={initialState}
         onGameEnd={handleGameEnd}
         onPlayAgain={handlePlayAgain}
+        playAgainLabel={playAgainLabel}
       />
     </div>
   )
