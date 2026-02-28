@@ -500,3 +500,41 @@ button:disabled {
   background: var(--accent);
   color: #fff;
 }
+
+/* ── RunResult ──────────────────────────────────────────── */
+
+.run-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.run-result__title--won {
+  color: var(--correct);
+}
+
+.run-result__title--lost {
+  color: var(--wrong);
+}
+
+.run-result__rooms,
+.run-result__score {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.btn-new-run {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.btn-new-run:hover {
+  background: var(--accent-hover);
+}
