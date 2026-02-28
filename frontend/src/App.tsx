@@ -217,6 +217,7 @@ export default function App() {
 
       {phase === 'combat' && currentGame && run && (
         <CombatView
+          key={currentGame.gameId}
           run={run}
           room={run.rooms[run.roomIndex]}
           initialState={currentGame}
