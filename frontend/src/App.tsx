@@ -29,7 +29,8 @@ export default function App() {
       setRun(saved)
       const room = saved.rooms[saved.roomIndex]
       if (room.type === 'enemy' || room.type === 'boss') {
-        fetchAndEnterCombat(saved, room.type, saved.pendingReveal)
+        const hint = room.type === 'enemy' ? saved.pendingReveal : false
+        fetchAndEnterCombat(saved, room.type, hint)
       } else if (room.type === 'rest') {
         setPhase('rest')
       } else if (room.type === 'treasure') {
