@@ -19,7 +19,7 @@ describe('App', () => {
 
   it('shows GameSetup on initial render', () => {
     render(<App />)
-    expect(screen.getByRole('button', { name: /easy/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument()
   })
 
   it('shows score starting at 0 wins / 0 losses', () => {
@@ -34,7 +34,7 @@ describe('App', () => {
     }))
 
     render(<App />)
-    await userEvent.click(screen.getByRole('button', { name: /easy/i }))
+    await userEvent.click(screen.getByRole('button', { name: /play/i }))
 
     await waitFor(() => {
       expect(screen.getByLabelText(/hangman figure/i)).toBeInTheDocument()
@@ -45,7 +45,7 @@ describe('App', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')))
 
     render(<App />)
-    await userEvent.click(screen.getByRole('button', { name: /easy/i }))
+    await userEvent.click(screen.getByRole('button', { name: /play/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/could not reach server/i)).toBeInTheDocument()

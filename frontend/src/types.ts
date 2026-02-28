@@ -1,5 +1,3 @@
-export type Difficulty = 'easy' | 'medium' | 'hard'
-
 export type GameStatus = 'in_progress' | 'won' | 'lost'
 
 export interface GameState {

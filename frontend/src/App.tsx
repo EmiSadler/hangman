@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Difficulty, GameState, Score } from './types'
+import type { GameState, Score } from './types'
 import GameSetup from './components/GameSetup'
 import GameBoard from './components/GameBoard'
 import './App.css'
@@ -21,13 +21,11 @@ export default function App() {
   const [score, setScore] = useState<Score>(loadScore)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleStart(difficulty: Difficulty) {
+  async function handleStart() {
     setError(null)
     try {
       const resp = await fetch('/api/game', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ difficulty }),
       })
       const data = await resp.json()
       if (!resp.ok) {
