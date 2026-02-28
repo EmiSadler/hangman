@@ -51,7 +51,7 @@ describe('GameBoard', () => {
     await userEvent.click(screen.getByRole('button', { name: 'A' }))
 
     await waitFor(() => {
-      expect(onGameEnd).toHaveBeenCalledWith('won')
+      expect(onGameEnd).toHaveBeenCalledWith('won', 0)
     })
   })
 
@@ -107,7 +107,7 @@ describe('GameBoard', () => {
     await userEvent.click(screen.getByRole('button', { name: /submit/i }))
 
     await waitFor(() => {
-      expect(onGameEnd).toHaveBeenCalledWith('won')
+      expect(onGameEnd).toHaveBeenCalledWith('won', 0)
     })
   })
 

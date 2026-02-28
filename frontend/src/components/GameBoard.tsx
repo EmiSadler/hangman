@@ -7,7 +7,7 @@ import GameResult from './GameResult'
 
 interface Props {
   initialState: GameState
-  onGameEnd: (result: 'won' | 'lost') => void
+  onGameEnd: (result: 'won' | 'lost', wrongGuessesMade: number) => void
   onPlayAgain: () => void
 }
 
@@ -49,7 +49,8 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
       }
       setGame(updated)
       if (updated.status === 'won' || updated.status === 'lost') {
-        onGameEnd(updated.status)
+        const wrongGuessesMade = initialState.maxWrong - updated.wrongGuessesLeft
+        onGameEnd(updated.status, wrongGuessesMade)
       }
     } catch {
       setError('Could not reach server — try again')
@@ -86,7 +87,8 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain }: Prop
       setSolvingMode(false)
       setSolveInput('')
       if (updated.status === 'won' || updated.status === 'lost') {
-        onGameEnd(updated.status)
+        const wrongGuessesMade = initialState.maxWrong - updated.wrongGuessesLeft
+        onGameEnd(updated.status, wrongGuessesMade)
       }
     } catch {
       setError('Could not reach server — try again')
