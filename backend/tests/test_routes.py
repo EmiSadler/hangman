@@ -13,43 +13,28 @@ def client():
 # --- POST /api/game ---
 
 def test_new_game_returns_game_id(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     assert resp.status_code == 200
     data = resp.get_json()
     assert "game_id" in data
 
 def test_new_game_returns_masked_word(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     data = resp.get_json()
     assert "masked_word" in data
     assert "_" in data["masked_word"]
 
-def test_new_game_easy_max_wrong(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+def test_new_game_max_wrong(client):
+    resp = client.post("/api/game")
     data = resp.get_json()
-    assert data["max_wrong"] == 8
-    assert data["wrong_guesses_left"] == 8
-
-def test_new_game_hard_max_wrong(client):
-    resp = client.post("/api/game", json={"difficulty": "hard"})
-    data = resp.get_json()
-    assert data["max_wrong"] == 4
-
-def test_new_game_invalid_difficulty(client):
-    resp = client.post("/api/game", json={"difficulty": "impossible"})
-    assert resp.status_code == 400
-
-def test_new_game_missing_difficulty(client):
-    resp = client.post("/api/game", json={})
-    assert resp.status_code == 400
+    assert data["max_wrong"] == 6
+    assert data["wrong_guesses_left"] == 6
 
 # --- POST /api/game/<game_id>/guess ---
 
 def test_guess_correct_letter(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
-
-    # Patch the word for determinism
     games[game_id]["word"] = "cat"
 
     resp = client.post(f"/api/game/{game_id}/guess", json={"letter": "a"})
@@ -59,17 +44,17 @@ def test_guess_correct_letter(client):
     assert "a" in data["guessed_letters"]
 
 def test_guess_wrong_letter_decrements(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
     games[game_id]["word"] = "cat"
 
     resp = client.post(f"/api/game/{game_id}/guess", json={"letter": "z"})
     data = resp.get_json()
     assert data["correct"] is False
-    assert data["wrong_guesses_left"] == 7
+    assert data["wrong_guesses_left"] == 5  # 6 - 1
 
 def test_guess_duplicate_returns_400(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
     games[game_id]["word"] = "cat"
 
@@ -82,7 +67,7 @@ def test_guess_unknown_game_id_returns_404(client):
     assert resp.status_code == 404
 
 def test_guess_win_sets_status(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
     games[game_id]["word"] = "hi"
 
@@ -91,7 +76,7 @@ def test_guess_win_sets_status(client):
     assert resp.get_json()["status"] == "won"
 
 def test_guess_after_game_over_returns_400(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
     games[game_id]["word"] = "hi"
     games[game_id]["status"] = "won"
@@ -100,14 +85,14 @@ def test_guess_after_game_over_returns_400(client):
     assert resp.status_code == 400
 
 def test_guess_invalid_letter_returns_400(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
 
     resp = client.post(f"/api/game/{game_id}/guess", json={"letter": "123"})
     assert resp.status_code == 400
 
 def test_guess_missing_letter_returns_400(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
 
     resp = client.post(f"/api/game/{game_id}/guess", json={})
@@ -116,7 +101,7 @@ def test_guess_missing_letter_returns_400(client):
 # --- POST /api/game/<game_id>/solve ---
 
 def test_solve_correct_wins(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
     games[game_id]["word"] = "cat"
 
@@ -127,7 +112,7 @@ def test_solve_correct_wins(client):
     assert data["status"] == "won"
 
 def test_solve_wrong_decrements(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
     games[game_id]["word"] = "cat"
 
@@ -135,13 +120,13 @@ def test_solve_wrong_decrements(client):
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["correct"] is False
-    assert data["wrong_guesses_left"] == 7   # easy max_wrong=8, minus 1
+    assert data["wrong_guesses_left"] == 5  # 6 - 1
 
 def test_solve_wrong_causes_loss(client):
-    resp = client.post("/api/game", json={"difficulty": "hard"})  # max_wrong=4
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
     games[game_id]["word"] = "cat"
-    games[game_id]["wrong_count"] = 3        # one guess left
+    games[game_id]["wrong_count"] = 5  # one guess left
 
     resp = client.post(f"/api/game/{game_id}/solve", json={"word": "dog"})
     data = resp.get_json()
@@ -153,7 +138,7 @@ def test_solve_unknown_game_returns_404(client):
     assert resp.status_code == 404
 
 def test_solve_after_game_over_returns_400(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
     games[game_id]["word"] = "cat"
     games[game_id]["status"] = "won"
@@ -162,7 +147,7 @@ def test_solve_after_game_over_returns_400(client):
     assert resp.status_code == 400
 
 def test_solve_missing_word_returns_400(client):
-    resp = client.post("/api/game", json={"difficulty": "easy"})
+    resp = client.post("/api/game")
     game_id = resp.get_json()["game_id"]
 
     resp = client.post(f"/api/game/{game_id}/solve", json={})

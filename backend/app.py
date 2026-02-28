@@ -18,13 +18,8 @@ def home():
 
 @app.route("/api/game", methods=["POST"])
 def create_game():
-    data = request.get_json(silent=True) or {}
-    difficulty = data.get("difficulty")
-    if difficulty not in ("easy", "medium", "hard"):
-        return jsonify({"error": "difficulty must be easy, medium, or hard"}), 400
-
     game_id = str(uuid.uuid4())
-    game = new_game(difficulty)
+    game = new_game()
     games[game_id] = game
 
     return jsonify({
@@ -41,15 +36,12 @@ def guess(game_id: str):
     game = games.get(game_id)
     if game is None:
         return jsonify({"error": "game not found"}), 404
-
     data = request.get_json(silent=True) or {}
     letter = data.get("letter", "")
-
     try:
         result = make_guess(game, letter)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-
     return jsonify(result)
 
 
@@ -58,15 +50,12 @@ def solve(game_id: str):
     game = games.get(game_id)
     if game is None:
         return jsonify({"error": "game not found"}), 404
-
     data = request.get_json(silent=True) or {}
     word = data.get("word", "")
-
     try:
         result = solve_word(game, word)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-
     return jsonify(result)
 
 
