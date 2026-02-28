@@ -538,3 +538,29 @@ button:disabled {
 .btn-new-run:hover {
   background: var(--accent-hover);
 }
+
+/* ── CombatView ─────────────────────────────────────────── */
+
+.combat-view__stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.combat-view__hp {
+  color: var(--wrong);
+}
+
+.combat-view__coins {
+  color: var(--accent);
+}
+
+.combat-view__floor {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
+}
