@@ -14,6 +14,7 @@ const mockGameResponse = {
 describe('App', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    localStorage.clear()
   })
 
   it('shows GameSetup on initial render', () => {
@@ -49,5 +50,26 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByText(/could not reach server/i)).toBeInTheDocument()
     })
+  })
+
+  it('loads persisted score from localStorage on mount', () => {
+    localStorage.setItem('hangman_score', JSON.stringify({ wins: 3, losses: 2 }))
+    render(<App />)
+    expect(screen.getByText(/3 wins/i)).toBeInTheDocument()
+    expect(screen.getByText(/2 losses/i)).toBeInTheDocument()
+  })
+
+  it('forget me button resets score to zero and removes it from localStorage', async () => {
+    localStorage.setItem('hangman_score', JSON.stringify({ wins: 3, losses: 2 }))
+    render(<App />)
+    await userEvent.click(screen.getByRole('button', { name: /forget me/i }))
+    expect(screen.getByText(/0 wins/i)).toBeInTheDocument()
+    expect(localStorage.getItem('hangman_score')).toBeNull()
+  })
+
+  it('falls back to zero score when localStorage contains invalid JSON', () => {
+    localStorage.setItem('hangman_score', 'not-valid-json')
+    render(<App />)
+    expect(screen.getByText(/0 wins/i)).toBeInTheDocument()
   })
 })

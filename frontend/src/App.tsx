@@ -1,13 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Difficulty, GameState, Score } from './types'
 import GameSetup from './components/GameSetup'
 import GameBoard from './components/GameBoard'
 import './App.css'
 
+const SCORE_KEY = 'hangman_score'
+
+function loadScore(): Score {
+  try {
+    const raw = localStorage.getItem(SCORE_KEY)
+    if (!raw) return { wins: 0, losses: 0 }
+    return JSON.parse(raw) as Score
+  } catch {
+    return { wins: 0, losses: 0 }
+  }
+}
+
 export default function App() {
   const [game, setGame] = useState<GameState | null>(null)
-  const [score, setScore] = useState<Score>({ wins: 0, losses: 0 })
+  const [score, setScore] = useState<Score>(loadScore)
   const [error, setError] = useState<string | null>(null)
+  const resetPending = useRef(false)
+
+  useEffect(() => {
+    if (resetPending.current) {
+      localStorage.removeItem(SCORE_KEY)
+      resetPending.current = false
+    } else {
+      localStorage.setItem(SCORE_KEY, JSON.stringify(score))
+    }
+  }, [score])
 
   async function handleStart(difficulty: Difficulty) {
     setError(null)
@@ -46,10 +68,18 @@ export default function App() {
     setGame(null)
   }
 
+  function handleReset() {
+    resetPending.current = true
+    setScore({ wins: 0, losses: 0 })
+  }
+
   return (
     <div className="app">
-      <div className="score-pill">
-        {score.wins} win{score.wins !== 1 ? 's' : ''} / {score.losses} loss{score.losses !== 1 ? 'es' : ''}
+      <div className="score-row">
+        <div className="score-pill">
+          {score.wins} win{score.wins !== 1 ? 's' : ''} / {score.losses} loss{score.losses !== 1 ? 'es' : ''}
+        </div>
+        <button className="btn-forget" onClick={handleReset}>Forget me</button>
       </div>
       {error && <p className="app__error">{error}</p>}
       {game === null ? (
