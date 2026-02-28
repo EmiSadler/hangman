@@ -1,86 +1,243 @@
-import { useState } from 'react'
-import type { GameState, Score } from './types'
-import GameSetup from './components/GameSetup'
-import GameBoard from './components/GameBoard'
+import { useState, useEffect } from 'react'
+import type { GameState, GameStatus, RunState, RunScore, Room } from './types'
+import {
+  buildRun, buildRooms, loadRun, saveRun, clearRun,
+  loadRunScore, saveRunScore, computeRoomsCleared,
+  SCORE_KEY,
+} from './runState'
+import RunSetup from './components/RunSetup'
+import FloorProgress from './components/FloorProgress'
+import CombatView from './components/CombatView'
+import RestArea from './components/RestArea'
+import TreasureArea from './components/TreasureArea'
+import RunResult from './components/RunResult'
 import './App.css'
 
-const SCORE_KEY = 'hangman_score'
-
-function loadScore(): Score {
-  try {
-    const raw = localStorage.getItem(SCORE_KEY)
-    if (!raw) return { wins: 0, losses: 0 }
-    return JSON.parse(raw) as Score
-  } catch {
-    return { wins: 0, losses: 0 }
-  }
-}
+type AppPhase = 'idle' | 'combat' | 'rest' | 'treasure' | 'run_won' | 'run_lost'
 
 export default function App() {
-  const [game, setGame] = useState<GameState | null>(null)
-  const [score, setScore] = useState<Score>(loadScore)
+  const [phase, setPhase] = useState<AppPhase>('idle')
+  const [run, setRun] = useState<RunState | null>(null)
+  const [score, setScore] = useState<RunScore>(loadRunScore)
+  const [currentGame, setCurrentGame] = useState<GameState | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleStart() {
+  // Resume saved run on mount
+  useEffect(() => {
+    const saved = loadRun()
+    if (saved && saved.status === 'in_progress') {
+      setRun(saved)
+      const room = saved.rooms[saved.roomIndex]
+      if (room.type === 'enemy' || room.type === 'boss') {
+        fetchAndEnterCombat(saved, room.type, saved.pendingReveal)
+      } else if (room.type === 'rest') {
+        setPhase('rest')
+      } else if (room.type === 'treasure') {
+        setPhase('treasure')
+      }
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function fetchAndEnterCombat(
+    currentRun: RunState,
+    roomType: 'enemy' | 'boss',
+    hint: boolean,
+  ) {
     setError(null)
     try {
+      const body: Record<string, unknown> = { room_type: roomType }
+      if (hint) body.hint = true
       const resp = await fetch('/api/game', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       })
       const data = await resp.json()
       if (!resp.ok) {
         setError(data.error ?? 'Failed to start game')
         return
       }
-      setGame({
+      const game: GameState = {
         gameId: data.game_id,
         maskedWord: data.masked_word,
         maxWrong: data.max_wrong,
         wrongGuessesLeft: data.wrong_guesses_left,
         guessedLetters: data.guessed_letters,
-        status: 'in_progress',
-      })
+        status: 'in_progress' as GameStatus,
+      }
+      if (hint) {
+        const withRevealCleared = { ...currentRun, pendingReveal: false }
+        setRun(withRevealCleared)
+        saveRun(withRevealCleared)
+      }
+      setCurrentGame(game)
+      setPhase('combat')
     } catch {
       setError('Could not reach server — is the backend running?')
     }
   }
 
-  function handleGameEnd(result: 'won' | 'lost') {
-    setScore((prev) => {
-      const next = {
-        wins: result === 'won' ? prev.wins + 1 : prev.wins,
-        losses: result === 'lost' ? prev.losses + 1 : prev.losses,
-      }
-      localStorage.setItem(SCORE_KEY, JSON.stringify(next))
-      return next
-    })
+  async function handleStartRun() {
+    const newRun = buildRun()
+    saveRun(newRun)
+    setRun(newRun)
+    await fetchAndEnterCombat(newRun, 'enemy', false)
   }
 
-  function handlePlayAgain() {
-    setGame(null)
+  async function handleCombatEnd(updatedRun: RunState) {
+    const roomIndex = updatedRun.roomIndex
+    const updatedRooms = updatedRun.rooms.map((r, i) =>
+      i === roomIndex ? { ...r, completed: true } : r,
+    )
+
+    if (updatedRun.hp <= 0) {
+      const finalRun: RunState = { ...updatedRun, rooms: updatedRooms, status: 'lost' }
+      clearRun()
+      setRun(finalRun)
+      setScore(prev => {
+        const next: RunScore = {
+          runsCleared: prev.runsCleared,
+          runsFailed: prev.runsFailed + 1,
+          bestRooms: Math.max(prev.bestRooms, computeRoomsCleared(finalRun)),
+        }
+        saveRunScore(next)
+        return next
+      })
+      setPhase('run_lost')
+      return
+    }
+
+    if (roomIndex === 10) {
+      if (updatedRun.floor === 3) {
+        const finalRun: RunState = { ...updatedRun, rooms: updatedRooms, status: 'won' }
+        clearRun()
+        setRun(finalRun)
+        setScore(prev => {
+          const next: RunScore = {
+            runsCleared: prev.runsCleared + 1,
+            runsFailed: prev.runsFailed,
+            bestRooms: Math.max(prev.bestRooms, 33),
+          }
+          saveRunScore(next)
+          return next
+        })
+        setPhase('run_won')
+        return
+      } else {
+        const nextFloor = updatedRun.floor + 1
+        const nextFloorRun: RunState = {
+          ...updatedRun,
+          floor: nextFloor,
+          roomIndex: 0,
+          rooms: buildRooms(nextFloor),
+          pendingReveal: false,
+        }
+        saveRun(nextFloorRun)
+        setRun(nextFloorRun)
+        await fetchAndEnterCombat(nextFloorRun, 'enemy', false)
+        return
+      }
+    }
+
+    const nextRun: RunState = { ...updatedRun, rooms: updatedRooms, roomIndex: roomIndex + 1 }
+    saveRun(nextRun)
+    setRun(nextRun)
+    await enterRoom(nextRun, nextRun.rooms[nextRun.roomIndex])
+  }
+
+  async function enterRoom(currentRun: RunState, room: Room) {
+    if (room.type === 'enemy') {
+      await fetchAndEnterCombat(currentRun, 'enemy', currentRun.pendingReveal)
+    } else if (room.type === 'boss') {
+      await fetchAndEnterCombat(currentRun, 'boss', false)
+    } else if (room.type === 'rest') {
+      setPhase('rest')
+    } else if (room.type === 'treasure') {
+      setPhase('treasure')
+    }
+  }
+
+  function handleRestHeal(updatedRun: RunState) {
+    saveRun(updatedRun)
+    setRun(updatedRun)
+  }
+
+  async function handleRestLeave() {
+    if (!run) return
+    await advanceFromNonCombatRoom(run)
+  }
+
+  async function handleTreasureChoose(updatedRun: RunState) {
+    await advanceFromNonCombatRoom(updatedRun)
+  }
+
+  async function advanceFromNonCombatRoom(currentRun: RunState) {
+    const roomIndex = currentRun.roomIndex
+    const updatedRooms = currentRun.rooms.map((r, i) =>
+      i === roomIndex ? { ...r, completed: true } : r,
+    )
+    const nextRun: RunState = { ...currentRun, rooms: updatedRooms, roomIndex: roomIndex + 1 }
+    saveRun(nextRun)
+    setRun(nextRun)
+    await enterRoom(nextRun, nextRun.rooms[nextRun.roomIndex])
   }
 
   function handleReset() {
+    clearRun()
     localStorage.removeItem(SCORE_KEY)
-    setScore({ wins: 0, losses: 0 })
+    setRun(null)
+    setCurrentGame(null)
+    setPhase('idle')
+    const zero: RunScore = { runsCleared: 0, runsFailed: 0, bestRooms: 0 }
+    setScore(zero)
   }
+
+  function handleNewRun() {
+    clearRun()
+    setRun(null)
+    setCurrentGame(null)
+    setError(null)
+    setPhase('idle')
+  }
+
+  const showProgress = phase !== 'idle' && phase !== 'run_won' && phase !== 'run_lost'
 
   return (
     <div className="app">
-      <div className="score-row">
-        <div className="score-pill">
-          {score.wins} win{score.wins !== 1 ? 's' : ''} / {score.losses} loss{score.losses !== 1 ? 'es' : ''}
-        </div>
-        <button className="btn-forget" onClick={handleReset}>Forget me</button>
-      </div>
       {error && <p className="app__error">{error}</p>}
-      {game === null ? (
-        <GameSetup onStart={handleStart} />
-      ) : (
-        <GameBoard
-          initialState={game}
-          onGameEnd={handleGameEnd}
-          onPlayAgain={handlePlayAgain}
+
+      {phase === 'idle' && (
+        <RunSetup onStart={handleStartRun} score={score} onReset={handleReset} />
+      )}
+
+      {showProgress && run && (
+        <FloorProgress rooms={run.rooms} currentIndex={run.roomIndex} floor={run.floor} />
+      )}
+
+      {phase === 'combat' && currentGame && run && (
+        <CombatView
+          run={run}
+          room={run.rooms[run.roomIndex]}
+          initialState={currentGame}
+          floor={run.floor}
+          onCombatEnd={handleCombatEnd}
+        />
+      )}
+
+      {phase === 'rest' && run && (
+        <RestArea run={run} onHeal={handleRestHeal} onLeave={handleRestLeave} />
+      )}
+
+      {phase === 'treasure' && run && (
+        <TreasureArea run={run} onChoose={handleTreasureChoose} />
+      )}
+
+      {(phase === 'run_won' || phase === 'run_lost') && run && (
+        <RunResult
+          won={phase === 'run_won'}
+          roomsCleared={computeRoomsCleared(run)}
+          score={score}
+          onNewRun={handleNewRun}
         />
       )}
     </div>

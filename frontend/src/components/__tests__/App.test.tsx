@@ -5,7 +5,7 @@ import App from '../../App'
 
 const mockGameResponse = {
   game_id: 'test-uuid',
-  masked_word: '_ _ _ _ _ _',
+  masked_word: '_ _ _ _ _ _ _ _',
   max_wrong: 6,
   wrong_guesses_left: 6,
   guessed_letters: [],
@@ -17,25 +17,23 @@ describe('App', () => {
     localStorage.clear()
   })
 
-  it('shows GameSetup on initial render', () => {
+  it('shows RunSetup on initial render', () => {
     render(<App />)
-    expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /start run/i })).toBeInTheDocument()
   })
 
-  it('shows score starting at 0 wins / 0 losses', () => {
+  it('shows zero score on initial render', () => {
     render(<App />)
-    expect(screen.getByText(/0.*win/i)).toBeInTheDocument()
+    expect(screen.getByText(/0 runs cleared/i)).toBeInTheDocument()
   })
 
-  it('switches to GameBoard after starting a game', async () => {
+  it('switches to CombatView after starting a run', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mockGameResponse,
     }))
-
     render(<App />)
-    await userEvent.click(screen.getByRole('button', { name: /play/i }))
-
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
     await waitFor(() => {
       expect(screen.getByLabelText(/hangman figure/i)).toBeInTheDocument()
     })
@@ -43,33 +41,56 @@ describe('App', () => {
 
   it('shows error when server is unreachable', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')))
-
     render(<App />)
-    await userEvent.click(screen.getByRole('button', { name: /play/i }))
-
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
     await waitFor(() => {
       expect(screen.getByText(/could not reach server/i)).toBeInTheDocument()
     })
   })
 
-  it('loads persisted score from localStorage on mount', () => {
-    localStorage.setItem('hangman_score', JSON.stringify({ wins: 3, losses: 2 }))
+  it('shows FloorProgress during combat', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGameResponse,
+    }))
     render(<App />)
-    expect(screen.getByText(/3 wins/i)).toBeInTheDocument()
-    expect(screen.getByText(/2 losses/i)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => {
+      expect(screen.getByLabelText(/floor 1 progress/i)).toBeInTheDocument()
+    })
   })
 
-  it('forget me button resets score to zero and removes it from localStorage', async () => {
-    localStorage.setItem('hangman_score', JSON.stringify({ wins: 3, losses: 2 }))
+  it('loads persisted score from localStorage on mount', () => {
+    localStorage.setItem('hangman_score', JSON.stringify({ runsCleared: 2, runsFailed: 3, bestRooms: 15 }))
+    render(<App />)
+    expect(screen.getByText(/2 runs cleared/i)).toBeInTheDocument()
+  })
+
+  it('Forget me resets score to zero and clears localStorage', async () => {
+    localStorage.setItem('hangman_score', JSON.stringify({ runsCleared: 2, runsFailed: 3, bestRooms: 15 }))
     render(<App />)
     await userEvent.click(screen.getByRole('button', { name: /forget me/i }))
-    expect(screen.getByText(/0 wins/i)).toBeInTheDocument()
+    expect(screen.getByText(/0 runs cleared/i)).toBeInTheDocument()
     expect(localStorage.getItem('hangman_score')).toBeNull()
   })
 
-  it('falls back to zero score when localStorage contains invalid JSON', () => {
-    localStorage.setItem('hangman_score', 'not-valid-json')
+  it('falls back to zero score on invalid localStorage JSON', () => {
+    localStorage.setItem('hangman_score', 'garbage')
     render(<App />)
-    expect(screen.getByText(/0 wins/i)).toBeInTheDocument()
+    expect(screen.getByText(/0 runs cleared/i)).toBeInTheDocument()
+  })
+
+  it('resumes saved run from localStorage on mount', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGameResponse,
+    }))
+    const { buildRun } = await import('../../runState')
+    const savedRun = buildRun()
+    localStorage.setItem('hangman_run', JSON.stringify(savedRun))
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByLabelText(/hangman figure/i)).toBeInTheDocument()
+    })
   })
 })
