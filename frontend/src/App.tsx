@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import type { Difficulty, GameState, Score } from './types'
 import GameSetup from './components/GameSetup'
 import GameBoard from './components/GameBoard'
@@ -20,16 +20,6 @@ export default function App() {
   const [game, setGame] = useState<GameState | null>(null)
   const [score, setScore] = useState<Score>(loadScore)
   const [error, setError] = useState<string | null>(null)
-  const resetPending = useRef(false)
-
-  useEffect(() => {
-    if (resetPending.current) {
-      localStorage.removeItem(SCORE_KEY)
-      resetPending.current = false
-    } else {
-      localStorage.setItem(SCORE_KEY, JSON.stringify(score))
-    }
-  }, [score])
 
   async function handleStart(difficulty: Difficulty) {
     setError(null)
@@ -58,10 +48,14 @@ export default function App() {
   }
 
   function handleGameEnd(result: 'won' | 'lost') {
-    setScore((prev) => ({
-      wins: result === 'won' ? prev.wins + 1 : prev.wins,
-      losses: result === 'lost' ? prev.losses + 1 : prev.losses,
-    }))
+    setScore((prev) => {
+      const next = {
+        wins: result === 'won' ? prev.wins + 1 : prev.wins,
+        losses: result === 'lost' ? prev.losses + 1 : prev.losses,
+      }
+      localStorage.setItem(SCORE_KEY, JSON.stringify(next))
+      return next
+    })
   }
 
   function handlePlayAgain() {
@@ -69,7 +63,7 @@ export default function App() {
   }
 
   function handleReset() {
-    resetPending.current = true
+    localStorage.removeItem(SCORE_KEY)
     setScore({ wins: 0, losses: 0 })
   }
 
