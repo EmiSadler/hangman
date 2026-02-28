@@ -24,7 +24,7 @@ describe('CombatView', () => {
   it('renders HP and coins', () => {
     const run = { ...buildRun(), hp: 14, coins: 10 }
     render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
-    expect(screen.getByText(/14 \/ 20/)).toBeInTheDocument()
+    expect(screen.getByText(/14 \/ 50/)).toBeInTheDocument()
     expect(screen.getByText(/10/)).toBeInTheDocument()
   })
 

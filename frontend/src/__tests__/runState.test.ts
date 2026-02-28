@@ -6,7 +6,7 @@ import {
 } from '../runState'
 
 describe('constants', () => {
-  it('MAX_HP is 20', () => expect(MAX_HP).toBe(20))
+  it('MAX_HP is 50', () => expect(MAX_HP).toBe(50))
   it('DAMAGE_PER_WRONG is 2', () => expect(DAMAGE_PER_WRONG).toBe(2))
   it('COINS_PER_ENEMY is 5', () => expect(COINS_PER_ENEMY).toBe(5))
   it('COINS_PER_BOSS is 20', () => expect(COINS_PER_BOSS).toBe(20))

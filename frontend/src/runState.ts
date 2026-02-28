@@ -1,6 +1,6 @@
 import type { Room, RunState, RunScore, RoomType } from './types'
 
-export const MAX_HP = 20
+export const MAX_HP = 50
 export const DAMAGE_PER_WRONG = 2
 export const COINS_PER_ENEMY = 5
 export const COINS_PER_BOSS = 20

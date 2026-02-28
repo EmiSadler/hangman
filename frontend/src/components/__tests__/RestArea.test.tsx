@@ -17,7 +17,7 @@ describe('RestArea', () => {
 
   it('displays current HP and coins', () => {
     render(<RestArea run={makeRun({ hp: 12, coins: 25 })} onHeal={vi.fn()} onLeave={vi.fn()} />)
-    expect(screen.getByText(/12 \/ 20/)).toBeInTheDocument()
+    expect(screen.getByText(/12 \/ 50/)).toBeInTheDocument()
     expect(screen.getByText(/25/)).toBeInTheDocument()
   })
 
@@ -32,7 +32,7 @@ describe('RestArea', () => {
   })
 
   it('heal button is disabled when HP is at max', () => {
-    render(<RestArea run={makeRun({ hp: 20, coins: 20 })} onHeal={vi.fn()} onLeave={vi.fn()} />)
+    render(<RestArea run={makeRun({ hp: 50, coins: 20 })} onHeal={vi.fn()} onLeave={vi.fn()} />)
     expect(screen.getByRole('button', { name: /heal/i })).toBeDisabled()
   })
 
@@ -45,9 +45,9 @@ describe('RestArea', () => {
 
   it('heal caps at maxHp', async () => {
     const onHeal = vi.fn()
-    render(<RestArea run={makeRun({ hp: 18, maxHp: 20, coins: 20 })} onHeal={onHeal} onLeave={vi.fn()} />)
+    render(<RestArea run={makeRun({ hp: 48, maxHp: 50, coins: 20 })} onHeal={onHeal} onLeave={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: /heal/i }))
-    expect(onHeal).toHaveBeenCalledWith(expect.objectContaining({ hp: 20 }))
+    expect(onHeal).toHaveBeenCalledWith(expect.objectContaining({ hp: 50 }))
   })
 
   it('calls onLeave when Leave is clicked', async () => {
