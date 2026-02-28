@@ -105,6 +105,23 @@ describe('App', () => {
     expect(screen.queryByText(/you won/i)).not.toBeInTheDocument()
   })
 
+  it('shows Give Up button during an active run', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => mockGameResponse }))
+    render(<App />)
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByLabelText(/hangman figure/i))
+    expect(screen.getByRole('button', { name: /give up/i })).toBeInTheDocument()
+  })
+
+  it('clicking Give Up ends the run as a loss and shows the run-lost screen', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => mockGameResponse }))
+    render(<App />)
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: /give up/i }))
+    await userEvent.click(screen.getByRole('button', { name: /give up/i }))
+    expect(screen.getByText(/you died/i)).toBeInTheDocument()
+  })
+
   it('resumes saved run from localStorage on mount', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,

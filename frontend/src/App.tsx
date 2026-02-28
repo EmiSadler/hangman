@@ -193,6 +193,22 @@ export default function App() {
     setScore(zero)
   }
 
+  function handleGiveUp() {
+    if (!run) return
+    clearRun()
+    setScore(prev => {
+      const next: RunScore = {
+        runsCleared: prev.runsCleared,
+        runsFailed: prev.runsFailed + 1,
+        bestRooms: Math.max(prev.bestRooms, computeRoomsCleared(run)),
+      }
+      saveRunScore(next)
+      return next
+    })
+    setRun({ ...run, status: 'lost' })
+    setPhase('run_lost')
+  }
+
   function handleNewRun() {
     clearRun()
     setRun(null)
@@ -213,6 +229,10 @@ export default function App() {
 
       {showProgress && run && (
         <FloorProgress rooms={run.rooms} currentIndex={run.roomIndex} floor={run.floor} />
+      )}
+
+      {showProgress && (
+        <button className="btn-give-up" onClick={handleGiveUp}>Give Up</button>
       )}
 
       {phase === 'combat' && currentGame && run && (
