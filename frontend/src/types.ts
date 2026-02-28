@@ -10,7 +10,27 @@ export interface GameState {
   word?: string
 }
 
-export interface Score {
-  wins: number
-  losses: number
+export type RoomType = 'enemy' | 'boss' | 'rest' | 'treasure'
+
+export interface Room {
+  type: RoomType
+  completed: boolean
+  gameId: string | null
+}
+
+export interface RunState {
+  hp: number
+  maxHp: number
+  coins: number
+  floor: number        // 1–3
+  roomIndex: number    // 0–10
+  rooms: Room[]
+  status: 'in_progress' | 'won' | 'lost'
+  pendingReveal: boolean
+}
+
+export interface RunScore {
+  runsCleared: number
+  runsFailed: number
+  bestRooms: number
 }
