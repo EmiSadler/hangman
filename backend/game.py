@@ -17,6 +17,8 @@ def select_word(room_type: str = 'enemy') -> str:
     words = load_words()
     if room_type == 'boss':
         words = [w for w in words if len(w) >= 8]
+        if not words:
+            raise ValueError("No words available for room_type='boss'")
     return random.choice(words)
 
 def mask_word(word: str, guessed_letters: list[str]) -> str:
@@ -66,6 +68,8 @@ def solve_word(game: dict, word: str) -> dict:
     word = word.strip().lower()
     if not word:
         raise ValueError("Guess must be a non-empty word")
+    if not word.isalpha():
+        raise ValueError("Guess must contain only letters")
     correct = word == game["word"]
     if correct:
         game["status"] = "won"

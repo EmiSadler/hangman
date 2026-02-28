@@ -206,3 +206,9 @@ def test_new_game_hint_false_has_no_guessed_letters():
 def test_new_game_hint_default_is_false():
     game = new_game()
     assert game["guessed_letters"] == []
+
+def test_solve_word_non_alpha_raises():
+    game = new_game()
+    game["word"] = "cat"
+    with pytest.raises(ValueError, match="only letters"):
+        solve_word(game, "123")
