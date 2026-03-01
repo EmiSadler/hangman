@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { GameState, GameStatus, RunState, RunScore, Room } from './types'
+import type { GameState, GameStatus, RunState, RunScore, Room, ClassName } from './types'
 import {
   buildRun, buildRooms, loadRun, saveRun, clearRun,
   loadRunScore, saveRunScore, computeRoomsCleared,
@@ -79,8 +79,8 @@ export default function App() {
     }
   }
 
-  async function handleStartRun() {
-    const newRun = buildRun('berserker')
+  async function handleStartRun(className: ClassName) {
+    const newRun = buildRun(className)
     saveRun(newRun)
     setRun(newRun)
     await fetchAndEnterCombat(newRun, 'enemy', false)

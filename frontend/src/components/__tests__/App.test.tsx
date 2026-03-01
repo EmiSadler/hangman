@@ -34,6 +34,7 @@ describe('App', () => {
       json: async () => mockGameResponse,
     }))
     render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
@@ -43,6 +44,7 @@ describe('App', () => {
   it('shows error when server is unreachable', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')))
     render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
     await waitFor(() => {
       expect(screen.getByText(/could not reach server/i)).toBeInTheDocument()
@@ -55,6 +57,7 @@ describe('App', () => {
       json: async () => mockGameResponse,
     }))
     render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
     await waitFor(() => {
       expect(screen.getByLabelText(/floor 1 progress/i)).toBeInTheDocument()
@@ -93,6 +96,7 @@ describe('App', () => {
     )
 
     render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
     await waitFor(() => screen.getByRole('button', { name: 'A' }))
 
@@ -109,6 +113,7 @@ describe('App', () => {
   it('shows Give Up button during an active run', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => mockGameResponse }))
     render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
     await waitFor(() => screen.getByRole('button', { name: 'A' }))
     expect(screen.getByRole('button', { name: /give up/i })).toBeInTheDocument()
@@ -117,6 +122,7 @@ describe('App', () => {
   it('clicking Give Up ends the run as a loss and shows the run-lost screen', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => mockGameResponse }))
     render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
     await waitFor(() => screen.getByRole('button', { name: /give up/i }))
     await userEvent.click(screen.getByRole('button', { name: /give up/i }))
