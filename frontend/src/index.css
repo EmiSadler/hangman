@@ -460,10 +460,10 @@ button:disabled {
 
 .combat-view__stats {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  padding: 0.5rem 0;
-  font-size: 1rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.9rem;
   font-weight: 600;
 }
 
@@ -501,12 +501,34 @@ button:disabled {
 
 /* ── CombatView additions ───────────────────────────────── */
 
+.combat-view__arena {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  gap: 1rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.combat-view__player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 120px;
+}
+
 .combat-view__class-label {
-  text-align: center;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--accent);
-  margin-bottom: 0.25rem;
+}
+
+.combat-view__player-sprite-placeholder {
+  width: 80px;
+  height: 80px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  background: var(--surface);
 }
 
 .combat-view__shield {
@@ -515,13 +537,16 @@ button:disabled {
 }
 
 .combat-view__enemy {
-  margin: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 120px;
 }
 
 .combat-view__enemy-sprite-placeholder {
   width: 80px;
   height: 80px;
-  margin: 0 auto 0.5rem;
   border: 2px dashed var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -530,15 +555,13 @@ button:disabled {
 .combat-view__enemy-hp-label {
   font-size: 0.85rem;
   color: var(--text-muted);
-  margin-bottom: 0.25rem;
 }
 
 .combat-view__enemy-hp-bar {
-  width: 200px;
+  width: 120px;
   height: 12px;
   background: var(--border);
   border-radius: 6px;
-  margin: 0 auto;
   overflow: hidden;
 }
 

@@ -194,27 +194,41 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
 
   return (
     <div className="combat-view">
-      <div className="combat-view__class-label">{CLASS_LABELS[run.className]}</div>
-      <div className="combat-view__stats">
-        <span className="combat-view__hp">
-          HP: {displayRun.hp} / {displayRun.maxHp}
-          {displayRun.shield > 0 && <span className="combat-view__shield"> 🛡 {displayRun.shield}</span>}
-        </span>
-        <span className="combat-view__coins">Coins: {displayRun.coins}</span>
-      </div>
-      <div className="combat-view__enemy">
-        <div className="combat-view__enemy-sprite-placeholder" aria-hidden="true" />
-        <div className="combat-view__enemy-hp-label">
-          Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
-        </div>
-        <div className="combat-view__enemy-hp-bar">
-          <div
-            className="combat-view__enemy-hp-fill"
-            style={{ width: `${Math.max(0, (currentEnemyHp / maxEnemyHp) * 100)}%` }}
-          />
-        </div>
-      </div>
       <p className="combat-view__floor">Floor {floor}</p>
+      <div className="combat-view__arena">
+        <div className="combat-view__player">
+          <div className="combat-view__class-label">{CLASS_LABELS[run.className]}</div>
+          <div className="combat-view__player-sprite-placeholder" aria-hidden="true" />
+          <div className="combat-view__stats">
+            <span className="combat-view__hp">
+              HP: {displayRun.hp} / {displayRun.maxHp}
+              {displayRun.shield > 0 && <span className="combat-view__shield"> 🛡 {displayRun.shield}</span>}
+            </span>
+            <span className="combat-view__coins">Coins: {displayRun.coins}</span>
+          </div>
+          {!combatDone && !enemyDead && (
+            <button
+              className="btn-ability"
+              onClick={handleAbility}
+              disabled={abilityDisabled}
+            >
+              {abilityLabel}
+            </button>
+          )}
+        </div>
+        <div className="combat-view__enemy">
+          <div className="combat-view__enemy-sprite-placeholder" aria-hidden="true" />
+          <div className="combat-view__enemy-hp-label">
+            Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
+          </div>
+          <div className="combat-view__enemy-hp-bar">
+            <div
+              className="combat-view__enemy-hp-fill"
+              style={{ width: `${Math.max(0, (currentEnemyHp / maxEnemyHp) * 100)}%` }}
+            />
+          </div>
+        </div>
+      </div>
       {run.className === 'archivist' && (
         <div className="combat-view__archivist-info">
           <span>Category: {initialState.category}</span>
@@ -230,15 +244,6 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         playAgainLabel={playAgainLabel}
         combatOver={combatDone || enemyDead}
       />
-      {!combatDone && !enemyDead && (
-        <button
-          className="btn-ability"
-          onClick={handleAbility}
-          disabled={abilityDisabled}
-        >
-          {abilityLabel}
-        </button>
-      )}
     </div>
   )
 }
