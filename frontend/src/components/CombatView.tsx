@@ -138,8 +138,9 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   function handleGuessResult(letter: string, correct: boolean, occurrences: number) {
     const isAbilityHit = abilityMode && correct
     const isAbilityMiss = abilityMode && !correct
+    const wasAbilityMode = abilityMode
 
-    if (abilityMode) {
+    if (wasAbilityMode) {
       setAbilityMode(false)
       if (run.className === 'vowel_mage' || run.className === 'berserker' || run.className === 'rogue') {
         const baseCooldown = ABILITY_COOLDOWNS[run.className]
@@ -162,7 +163,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       setCurrentEnemyHp(prev => Math.max(0, prev - dmg))
       setHiddenCount(prev => Math.max(0, prev - occurrences))
       if (run.className === 'rogue') setCombo(prev => prev + 1)
-      if (run.className === 'vowel_mage' && abilityMode && VOWELS.has(letter)) {
+      if (run.className === 'vowel_mage' && isAbilityHit && VOWELS.has(letter)) {
         setDisplayRun(prev => ({ ...prev, shield: prev.shield + occurrences }))
       }
     } else {
@@ -183,7 +184,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       }
     }
 
-    if (!abilityMode) setCooldown(prev => Math.max(0, prev - 1))
+    if (!wasAbilityMode) setCooldown(prev => Math.max(0, prev - 1))
   }
 
   function handleWordSolved() {

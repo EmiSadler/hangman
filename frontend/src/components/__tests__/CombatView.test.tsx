@@ -258,6 +258,22 @@ describe('CombatView', () => {
     await waitFor(() => expect(screen.getByText(/3 \/ 6/)).toBeInTheDocument())
   })
 
+  it('Short Sword +1 bonus is flat per guess (not per occurrence)', async () => {
+    // word='add', floor=1 → enemy HP = 3×1×2 = 6
+    // Guess 'd' (2 occ): base dmg = 2*2 = 4, + short_sword flat +1 = 5. HP: 6→1
+    const doubleLetterGame: GameState = { ...mockGame, word: 'add', maskedWord: '_ _ _', firstLetter: 'a' }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({
+        masked_word: 'a d d', correct: true,
+        guessed_letters: ['d'], status: 'in_progress', occurrences: 2,
+      }),
+    }))
+    const run = { ...buildRun('berserker'), artifacts: ['short_sword'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={doubleLetterGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'D' }))
+    await waitFor(() => expect(screen.getByText(/1 \/ 6/)).toBeInTheDocument())
+  })
+
   it('Thick Skin reduces damage taken by 1', async () => {
     // DAMAGE_PER_WRONG=2, thick_skin → 1 dmg taken. HP: 50→49
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
@@ -283,6 +299,25 @@ describe('CombatView', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Z' }))
     await userEvent.click(screen.getByRole('button', { name: 'A' }))
     await waitFor(() => expect(screen.getByText(/1 \/ 6/)).toBeInTheDocument())
+  })
+
+  it('Shadow Cloak raises Rogue combo from 0 to 1 on first wrong guess', async () => {
+    // Shadow Cloak spec: "combo drops to 1 instead of 0" — even from combo=0
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
+    }))
+    const run = { ...buildRun('rogue'), artifacts: ['shadow_cloak'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // First wrong guess before any correct hits: combo=0 → should become 1 (not stay 0)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    // Verify this by doing a correct guess: combo=1 means damage = (2+1)*1 = 3, HP: 6→3
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({
+        masked_word: '_ a _', correct: true, guessed_letters: ['z', 'a'], status: 'in_progress', occurrences: 1,
+      }),
+    }))
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => expect(screen.getByText(/3 \/ 6/)).toBeInTheDocument())
   })
 
   it('Shadow Cloak keeps Rogue combo at 1 after a wrong guess', async () => {
