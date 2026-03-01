@@ -8,21 +8,19 @@ interface Props {
   initialState: GameState
   onGuessResult: (letter: string, correct: boolean, occurrences: number) => void
   onWordSolved: () => void
-  onWordLost?: () => void
   onPlayAgain: () => void
   playAgainLabel?: string
   combatOver?: boolean
 }
 
-export default function GameBoard({ initialState, onGuessResult, onWordSolved, onWordLost, onPlayAgain, playAgainLabel, combatOver }: Props) {
+export default function GameBoard({ initialState, onGuessResult, onWordSolved, onPlayAgain, playAgainLabel, combatOver }: Props) {
   const [game, setGame] = useState<GameState>(initialState)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [correctLetters, setCorrectLetters] = useState<string[]>([])
 
   const isWordSolved = game.status === 'won'
-  const isWordLost = game.status === 'lost'
-  const isOver = isWordSolved || isWordLost || !!combatOver
+  const isOver = isWordSolved || !!combatOver
 
   // When combatOver, show fully revealed word
   const displayMasked = combatOver
@@ -57,15 +55,13 @@ export default function GameBoard({ initialState, onGuessResult, onWordSolved, o
       onGuessResult(letter, data.correct, data.occurrences)
       if (updated.status === 'won') {
         onWordSolved()
-      } else if (updated.status === 'lost') {
-        onWordLost?.()
       }
     } catch {
       setError('Could not reach server — try again')
     } finally {
       setLoading(false)
     }
-  }, [initialState, game, isOver, loading, onGuessResult, onWordSolved, onWordLost])
+  }, [initialState, game, isOver, loading, onGuessResult, onWordSolved])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -93,7 +89,7 @@ export default function GameBoard({ initialState, onGuessResult, onWordSolved, o
       )}
       {(isWordSolved || !!combatOver) && (
         <GameResult
-          status={isWordSolved ? 'won' : 'won'}
+          status="won"
           word={initialState.word}
           onPlayAgain={onPlayAgain}
           buttonLabel={playAgainLabel}

@@ -37,20 +37,6 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     setCombatOver(true)
   }
 
-  function handleWordLost() {
-    const damage = wrongCountRef.current * DAMAGE_PER_WRONG
-    const newHp = Math.max(0, run.hp - damage)
-    const updated: RunState = {
-      ...run,
-      hp: newHp,
-      coins: run.coins,
-      status: newHp <= 0 ? 'lost' : run.status,
-    }
-    pendingRunRef.current = updated
-    setDisplayRun(updated)
-    setCombatOver(true)
-  }
-
   function handlePlayAgain() {
     onCombatEnd(pendingRunRef.current ?? run)
   }
@@ -68,7 +54,6 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         initialState={initialState}
         onGuessResult={handleGuessResult}
         onWordSolved={handleWordSolved}
-        onWordLost={handleWordLost}
         onPlayAgain={handlePlayAgain}
         playAgainLabel={playAgainLabel}
         combatOver={combatOver}

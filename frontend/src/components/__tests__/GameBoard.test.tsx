@@ -79,5 +79,6 @@ describe('GameBoard', () => {
     // Full word "cat" should be visible
     expect(screen.getByText('c')).toBeInTheDocument()
     expect(screen.getByText('t')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'A' })).not.toBeInTheDocument()
   })
 })
