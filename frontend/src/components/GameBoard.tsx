@@ -1,28 +1,36 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { GameState, GameStatus } from '../types'
-import HangmanSvg from './HangmanSvg'
 import WordDisplay from './WordDisplay'
 import Keyboard from './Keyboard'
 import GameResult from './GameResult'
 
 interface Props {
   initialState: GameState
-  onGameEnd: (result: 'won' | 'lost', wrongGuessesMade: number) => void
+  onGuessResult: (letter: string, correct: boolean, occurrences: number) => void
+  onWordSolved: () => void
+  onWordLost?: () => void
   onPlayAgain: () => void
   playAgainLabel?: string
+  combatOver?: boolean
 }
 
-export default function GameBoard({ initialState, onGameEnd, onPlayAgain, playAgainLabel }: Props) {
+export default function GameBoard({ initialState, onGuessResult, onWordSolved, onWordLost, onPlayAgain, playAgainLabel, combatOver }: Props) {
   const [game, setGame] = useState<GameState>(initialState)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [correctLetters, setCorrectLetters] = useState<string[]>([])
-  const [solvingMode, setSolvingMode] = useState(false)
-  const [solveInput, setSolveInput] = useState('')
 
-  const wrongCount = game.guessedLetters.filter(l => !game.word.includes(l)).length
+  const isWordSolved = game.status === 'won'
+  const isWordLost = game.status === 'lost'
+  const isOver = isWordSolved || isWordLost || !!combatOver
+
+  // When combatOver, show fully revealed word
+  const displayMasked = combatOver
+    ? initialState.word.split('').join(' ')
+    : game.maskedWord
 
   const handleGuess = useCallback(async (letter: string) => {
+    if (isOver || loading) return
     setLoading(true)
     setError(null)
     try {
@@ -37,70 +45,31 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain, playAg
         return
       }
       const updated: GameState = {
-        gameId: initialState.gameId,
-        maskedWord: data.masked_word,
-        guessedLetters: data.guessed_letters,
-        status: data.status as GameStatus,
-        word: initialState.word,
-        category: initialState.category,
-        firstLetter: initialState.firstLetter,
-      }
-      if (data.correct) {
-        setCorrectLetters((prev) => [...prev, letter])
-      }
-      setGame(updated)
-      if (updated.status === 'won' || updated.status === 'lost') {
-        const wrongGuessesMade = updated.guessedLetters.filter(l => !updated.word.includes(l)).length
-        onGameEnd(updated.status, wrongGuessesMade)
-      }
-    } catch {
-      setError('Could not reach server — try again')
-    } finally {
-      setLoading(false)
-    }
-  }, [initialState, onGameEnd])
-
-  async function handleSolve() {
-    const word = solveInput.trim()
-    if (!word) return
-    setLoading(true)
-    setError(null)
-    try {
-      const resp = await fetch(`/api/game/${game.gameId}/solve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ word }),
-      })
-      const data = await resp.json()
-      if (!resp.ok) {
-        setError(data.error ?? 'Something went wrong')
-        return
-      }
-      const updated: GameState = {
         ...game,
         maskedWord: data.masked_word,
         guessedLetters: data.guessed_letters,
         status: data.status as GameStatus,
       }
+      if (data.correct) {
+        setCorrectLetters(prev => [...prev, letter])
+      }
       setGame(updated)
-      setSolvingMode(false)
-      setSolveInput('')
-      if (updated.status === 'won' || updated.status === 'lost') {
-        const wrongGuessesMade = updated.guessedLetters.filter(l => !updated.word.includes(l)).length
-        onGameEnd(updated.status, wrongGuessesMade)
+      onGuessResult(letter, data.correct, data.occurrences)
+      if (updated.status === 'won') {
+        onWordSolved()
+      } else if (updated.status === 'lost') {
+        onWordLost?.()
       }
     } catch {
       setError('Could not reach server — try again')
     } finally {
       setLoading(false)
     }
-  }
-
-  const isOver = game.status !== 'in_progress'
+  }, [initialState, game, isOver, loading, onGuessResult, onWordSolved, onWordLost])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (isOver || loading || solvingMode) return
+      if (isOver || loading) return
       const letter = e.key.toLowerCase()
       if (letter.length !== 1 || !/^[a-z]$/.test(letter)) return
       if (game.guessedLetters.includes(letter)) return
@@ -108,64 +77,24 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain, playAg
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOver, loading, solvingMode, game.guessedLetters, handleGuess])
+  }, [isOver, loading, game.guessedLetters, handleGuess])
 
   return (
     <div className="game-board">
-      <HangmanSvg wrongCount={wrongCount} />
-      <WordDisplay maskedWord={game.maskedWord} />
-      <p className="wrong-count">
-        {wrongCount} wrong guess{wrongCount !== 1 ? 'es' : ''}
-      </p>
+      <WordDisplay maskedWord={displayMasked} />
       {error && <p className="app__error">{error}</p>}
       {!isOver && (
-        solvingMode ? (
-          <div className="solve-form">
-            <input
-              autoFocus
-              type="text"
-              className="solve-input"
-              value={solveInput}
-              onChange={(e) => setSolveInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSolve()}
-              placeholder="Type the word..."
-              disabled={loading}
-            />
-            <div className="solve-form__actions">
-              <button
-                className="btn-submit"
-                onClick={handleSolve}
-                disabled={loading || !solveInput.trim()}
-              >
-                Submit
-              </button>
-              <button
-                className="btn-cancel"
-                onClick={() => { setSolvingMode(false); setSolveInput('') }}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <Keyboard
-              guessedLetters={game.guessedLetters}
-              correctLetters={correctLetters}
-              onGuess={handleGuess}
-              disabled={loading}
-            />
-            <button className="btn-solve" onClick={() => setSolvingMode(true)}>
-              Solve Puzzle
-            </button>
-          </>
-        )
+        <Keyboard
+          guessedLetters={game.guessedLetters}
+          correctLetters={correctLetters}
+          onGuess={handleGuess}
+          disabled={loading}
+        />
       )}
-      {isOver && (
+      {(isWordSolved || !!combatOver) && (
         <GameResult
-          status={game.status}
-          word={game.word ?? game.maskedWord.replace(/ /g, '')}
+          status={isWordSolved ? 'won' : 'won'}
+          word={initialState.word}
           onPlayAgain={onPlayAgain}
           buttonLabel={playAgainLabel}
         />

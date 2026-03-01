@@ -29,19 +29,18 @@ describe('CombatView', () => {
     expect(screen.getByText(/10/)).toBeInTheDocument()
   })
 
-  it('renders the GameBoard (hangman figure)', () => {
+  it('does NOT render a hangman figure', () => {
     render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
-    expect(screen.getByLabelText(/hangman figure/i)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/hangman figure/i)).not.toBeInTheDocument()
   })
 
-  it('calls onCombatEnd with reduced HP after lost word', async () => {
-    // 3 wrong guesses: wrong_guesses_left 6→3, so wrongGuessesMade=3, damage=6
+  it('calls onCombatEnd with reduced HP after lost word (1 wrong guess = 2 damage)', async () => {
+    // 1 wrong guess: damage=2; starting hp=14 → hp=12
     const lostResponse = {
       masked_word: '_ _ _', correct: false,
-      wrong_guesses_left: 3,
-      guessed_letters: ['z', 'x', 'q'],
+      guessed_letters: ['a'],
       status: 'lost',
-      word: 'cat',
+      occurrences: 0,
     }
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => lostResponse }))
 
@@ -54,17 +53,16 @@ describe('CombatView', () => {
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
 
-    // 3 wrong × 2 damage = 6; 14 - 6 = 8 HP; lost → 0 coins
-    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ hp: 8, coins: 5 }))
+    // 1 wrong × 2 damage = 2; 14 - 2 = 12 HP; lost → 0 coins earned
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ hp: 12, coins: 5 }))
   })
 
   it('calls onCombatEnd with coins earned after won enemy', async () => {
     const wonResponse = {
       masked_word: 'c a t', correct: true,
-      wrong_guesses_left: 6,
       guessed_letters: ['c', 'a', 't'],
       status: 'won',
-      word: null,
+      occurrences: 1,
     }
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => wonResponse }))
 
@@ -81,13 +79,12 @@ describe('CombatView', () => {
   })
 
   it('shows Continue button when word is lost but HP remains', async () => {
-    // 3 wrong guesses: damage=6; starting hp=14 → hp=8 (alive)
+    // 1 wrong guess: damage=2; starting hp=14 → hp=12 (alive)
     const lostResponse = {
       masked_word: '_ _ _', correct: false,
-      wrong_guesses_left: 3,
-      guessed_letters: ['z', 'x', 'q'],
+      guessed_letters: ['a'],
       status: 'lost',
-      word: 'cat',
+      occurrences: 0,
     }
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => lostResponse }))
 
@@ -101,17 +98,16 @@ describe('CombatView', () => {
   })
 
   it('shows Play Again button when HP hits 0', async () => {
-    // 6 wrong guesses: damage=12; starting hp=10 → hp=0 (dead)
+    // 1 wrong guess: damage=2; starting hp=2 → hp=0 (dead)
     const lostResponse = {
       masked_word: '_ _ _', correct: false,
-      wrong_guesses_left: 0,
-      guessed_letters: ['z', 'x', 'q', 'v', 'j', 'w'],
+      guessed_letters: ['a'],
       status: 'lost',
-      word: 'cat',
+      occurrences: 0,
     }
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => lostResponse }))
 
-    const run: RunState = { ...buildRun('berserker'), hp: 10, coins: 5 }
+    const run: RunState = { ...buildRun('berserker'), hp: 2, coins: 5 }
     render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: 'A' }))
 
@@ -123,10 +119,9 @@ describe('CombatView', () => {
   it('boss win earns 20 coins', async () => {
     const wonResponse = {
       masked_word: 'c a t', correct: true,
-      wrong_guesses_left: 6,
       guessed_letters: ['c', 'a', 't'],
       status: 'won',
-      word: null,
+      occurrences: 1,
     }
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => wonResponse }))
 

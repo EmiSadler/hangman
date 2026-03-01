@@ -13,22 +13,42 @@ interface Props {
 
 export default function CombatView({ run, room, initialState, floor, onCombatEnd }: Props) {
   const [displayRun, setDisplayRun] = useState<RunState>(run)
+  const [combatOver, setCombatOver] = useState(false)
+  const wrongCountRef = useRef(0)
   const pendingRunRef = useRef<RunState | null>(null)
 
-  function handleGameEnd(result: 'won' | 'lost', wrongGuessesMade: number) {
-    const damage = wrongGuessesMade * DAMAGE_PER_WRONG
+  function handleGuessResult(_letter: string, correct: boolean, _occurrences: number) {
+    if (!correct) {
+      wrongCountRef.current += 1
+      const newHp = Math.max(0, displayRun.hp - DAMAGE_PER_WRONG)
+      setDisplayRun(prev => ({ ...prev, hp: newHp }))
+    }
+  }
+
+  function handleWordSolved() {
+    const coinsEarned = room.type === 'boss' ? COINS_PER_BOSS : COINS_PER_ENEMY
+    const updated: RunState = {
+      ...run,
+      hp: displayRun.hp,
+      coins: run.coins + coinsEarned,
+    }
+    pendingRunRef.current = updated
+    setDisplayRun(updated)
+    setCombatOver(true)
+  }
+
+  function handleWordLost() {
+    const damage = wrongCountRef.current * DAMAGE_PER_WRONG
     const newHp = Math.max(0, run.hp - damage)
-    const coinsEarned = result === 'won'
-      ? (room.type === 'boss' ? COINS_PER_BOSS : COINS_PER_ENEMY)
-      : 0
     const updated: RunState = {
       ...run,
       hp: newHp,
-      coins: run.coins + coinsEarned,
+      coins: run.coins,
       status: newHp <= 0 ? 'lost' : run.status,
     }
     pendingRunRef.current = updated
     setDisplayRun(updated)
+    setCombatOver(true)
   }
 
   function handlePlayAgain() {
@@ -46,9 +66,12 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       <p className="combat-view__floor">Floor {floor}</p>
       <GameBoard
         initialState={initialState}
-        onGameEnd={handleGameEnd}
+        onGuessResult={handleGuessResult}
+        onWordSolved={handleWordSolved}
+        onWordLost={handleWordLost}
         onPlayAgain={handlePlayAgain}
         playAgainLabel={playAgainLabel}
+        combatOver={combatOver}
       />
     </div>
   )

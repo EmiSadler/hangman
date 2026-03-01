@@ -36,7 +36,7 @@ describe('App', () => {
     render(<App />)
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
     await waitFor(() => {
-      expect(screen.getByLabelText(/hangman figure/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
     })
   })
 
@@ -110,7 +110,7 @@ describe('App', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => mockGameResponse }))
     render(<App />)
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
-    await waitFor(() => screen.getByLabelText(/hangman figure/i))
+    await waitFor(() => screen.getByRole('button', { name: 'A' }))
     expect(screen.getByRole('button', { name: /give up/i })).toBeInTheDocument()
   })
 
@@ -133,7 +133,7 @@ describe('App', () => {
     localStorage.setItem('hangman_run', JSON.stringify(savedRun))
     render(<App />)
     await waitFor(() => {
-      expect(screen.getByLabelText(/hangman figure/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
     })
   })
 })
