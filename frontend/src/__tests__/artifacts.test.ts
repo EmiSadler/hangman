@@ -18,8 +18,15 @@ describe('ARTIFACTS', () => {
 })
 
 describe('sampleArtifacts', () => {
-  it('returns the requested count', () => {
-    expect(sampleArtifacts([], 3).length).toBe(3)
+  it('returns the requested count of valid Artifact objects', () => {
+    const result = sampleArtifacts([], 3)
+    expect(result.length).toBe(3)
+    for (const artifact of result) {
+      expect(artifact.id).toBeTruthy()
+      expect(artifact.name).toBeTruthy()
+      expect(artifact.emoji).toBeTruthy()
+      expect(artifact.description).toBeTruthy()
+    }
   })
 
   it('excludes already-owned artifacts', () => {

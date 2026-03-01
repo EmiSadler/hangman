@@ -66,6 +66,10 @@ export const ARTIFACTS: Record<ArtifactId, Artifact> = {
   },
 }
 
+/**
+ * Returns up to `count` random artifacts not already in `owned`.
+ * May return fewer than `count` if the available pool is smaller.
+ */
 export function sampleArtifacts(owned: ArtifactId[], count: number): Artifact[] {
   const pool = (Object.keys(ARTIFACTS) as ArtifactId[]).filter(id => !owned.includes(id))
   const shuffled = [...pool].sort(() => Math.random() - 0.5)
