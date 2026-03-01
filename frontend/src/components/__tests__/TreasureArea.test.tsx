@@ -1,11 +1,27 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import TreasureArea from '../TreasureArea'
 import { buildRun } from '../../runState'
-import type { ArtifactId } from '../../types'
+import { ARTIFACTS, sampleArtifacts } from '../../artifacts'
+
+vi.mock('../../artifacts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../artifacts')>()
+  return {
+    ...actual,
+    sampleArtifacts: vi.fn(),
+  }
+})
 
 describe('TreasureArea', () => {
+  beforeEach(() => {
+    vi.mocked(sampleArtifacts).mockReturnValue([
+      ARTIFACTS['short_sword'],
+      ARTIFACTS['iron_shield'],
+      ARTIFACTS['chainmail'],
+    ])
+  })
+
   it('renders heading', () => {
     render(<TreasureArea run={buildRun('berserker')} onChoose={vi.fn()} />)
     expect(screen.getByRole('heading', { name: /treasure/i })).toBeInTheDocument()
@@ -60,33 +76,28 @@ describe('TreasureArea', () => {
   it('clicking Find an Artifact shows 3 artifact buttons', async () => {
     render(<TreasureArea run={buildRun('berserker')} onChoose={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: /find an artifact/i }))
-    const buttons = screen.getAllByRole('button')
-    expect(buttons.length).toBe(3)
+    expect(screen.getByRole('button', { name: /short sword/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /iron shield/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /chainmail/i })).toBeInTheDocument()
   })
 
   it('picking an artifact adds it to run.artifacts', async () => {
     const onChoose = vi.fn()
     render(<TreasureArea run={buildRun('berserker')} onChoose={onChoose} />)
     await userEvent.click(screen.getByRole('button', { name: /find an artifact/i }))
-    const buttons = screen.getAllByRole('button')
-    await userEvent.click(buttons[0])
+    await userEvent.click(screen.getByRole('button', { name: /short sword/i }))
     expect(onChoose).toHaveBeenCalledWith(
-      expect.objectContaining({ artifacts: expect.arrayContaining([expect.any(String)]) })
+      expect.objectContaining({ artifacts: expect.arrayContaining(['short_sword']) })
     )
   })
 
   it('picking Chainmail increases maxHp and hp by 5', async () => {
     const onChoose = vi.fn()
-    const ownedAll: ArtifactId[] = [
-      'vowel_seeker', 'crystal_ball', 'category_scroll',
-      'short_sword', 'blood_dagger', 'iron_shield', 'thick_skin',
-      'healing_salve', 'gold_tooth', 'battle_scar', 'shadow_cloak',
-      'mana_crystal', 'ancient_codex',
-    ]
-    const run = { ...buildRun('berserker'), hp: 30, maxHp: 50, artifacts: ownedAll }
+    vi.mocked(sampleArtifacts).mockReturnValue([ARTIFACTS['chainmail']])
+    const run = { ...buildRun('berserker'), hp: 30, maxHp: 50 }
     render(<TreasureArea run={run} onChoose={onChoose} />)
     await userEvent.click(screen.getByRole('button', { name: /find an artifact/i }))
-    await userEvent.click(screen.getAllByRole('button')[0])
+    await userEvent.click(screen.getByRole('button', { name: /chainmail/i }))
     expect(onChoose).toHaveBeenCalledWith(
       expect.objectContaining({ maxHp: 55, hp: 35, artifacts: expect.arrayContaining(['chainmail']) })
     )
