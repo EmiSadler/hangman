@@ -162,6 +162,19 @@ describe('CombatView', () => {
     await waitFor(() => expect(screen.getByText(/9 \/ 12/)).toBeInTheDocument())
   })
 
+  it('shows category, first letter and word length for Archivist', () => {
+    const archivistRun = buildRun('archivist')
+    render(<CombatView run={archivistRun} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    expect(screen.getByText(/animals/i)).toBeInTheDocument()
+    expect(screen.getByText(/first letter.*c/i)).toBeInTheDocument()
+    expect(screen.getByText(/3 letters/i)).toBeInTheDocument()
+  })
+
+  it('does NOT show Archivist info for other classes', () => {
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    expect(screen.queryByText(/first letter/i)).not.toBeInTheDocument()
+  })
+
   it('awards coins via onCombatEnd when enemy killed before word solved', async () => {
     // word='act' (3 letters), floor=1 → enemy HP = 3×1×2 = 6
     // 3 correct guesses (1 occ each, 2 dmg each) = 6 total damage → enemy dead, status stays in_progress

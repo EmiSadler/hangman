@@ -215,6 +215,13 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         </div>
       </div>
       <p className="combat-view__floor">Floor {floor}</p>
+      {run.className === 'archivist' && (
+        <div className="combat-view__archivist-info">
+          <span>Category: {initialState.category}</span>
+          <span>First letter: {initialState.firstLetter.toUpperCase()}</span>
+          <span>{initialState.word.length} letters</span>
+        </div>
+      )}
       <GameBoard
         initialState={initialState}
         onGuessResult={handleGuessResult}

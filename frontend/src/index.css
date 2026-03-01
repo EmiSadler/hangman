@@ -589,6 +589,19 @@ button:disabled {
   background: var(--accent-hover);
 }
 
+.combat-view__archivist-info {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
 /* ── Class selection ────────────────────────────────────── */
 
 .run-setup__choose-heading {
