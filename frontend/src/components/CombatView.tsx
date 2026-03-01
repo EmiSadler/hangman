@@ -20,8 +20,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   function handleGuessResult(_letter: string, correct: boolean, _occurrences: number) {
     if (!correct) {
       wrongCountRef.current += 1
-      const newHp = Math.max(0, displayRun.hp - DAMAGE_PER_WRONG)
-      setDisplayRun(prev => ({ ...prev, hp: newHp }))
+      setDisplayRun(prev => ({ ...prev, hp: Math.max(0, prev.hp - DAMAGE_PER_WRONG) }))
     }
   }
 
