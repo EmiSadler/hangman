@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { GameState, Room, RunState, ClassName } from '../types'
 import {
   DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT,
@@ -104,6 +104,12 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     () => initialState.maskedWord.split(' ').filter(c => c === '_').length
   )
 
+  useEffect(() => {
+    if (currentEnemyHp <= 0 && !combatDone) {
+      finishCombat(true)
+    }
+  }, [currentEnemyHp]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleGuessResult(letter: string, correct: boolean, occurrences: number) {
     const isAbilityHit = abilityMode && correct
     const isAbilityMiss = abilityMode && !correct
@@ -135,7 +141,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       const newHp = Math.max(0, displayRun.hp - playerDmg)
       setDisplayRun(prev => ({ ...prev, hp: newHp, shield: shieldLeft }))
       if (newHp <= 0) {
-        finishCombat(false)
+        finishCombat(false, newHp)
         return
       }
     }
@@ -147,17 +153,17 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     finishCombat(true)
   }
 
-  function finishCombat(won: boolean) {
+  function finishCombat(won: boolean, hpOverride?: number) {
     const coinsEarned = won ? (room.type === 'boss' ? COINS_PER_BOSS : COINS_PER_ENEMY) : 0
-    setDisplayRun(prev => {
-      const updated: RunState = {
-        ...prev,
-        coins: prev.coins + coinsEarned,
-        status: prev.hp <= 0 ? 'lost' : run.status,
-      }
-      setPendingRun(updated)
-      return updated
-    })
+    const effectiveHp = hpOverride ?? displayRun.hp
+    const updated: RunState = {
+      ...displayRun,
+      hp: effectiveHp,
+      coins: displayRun.coins + coinsEarned,
+      status: effectiveHp <= 0 ? 'lost' : run.status,
+    }
+    setPendingRun(updated)
+    setDisplayRun(updated)
     setCombatDone(true)
   }
 
@@ -224,11 +230,6 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           disabled={abilityDisabled}
         >
           {abilityLabel}
-        </button>
-      )}
-      {enemyDead && !combatDone && (
-        <button className="btn-continue" onClick={() => finishCombat(true)}>
-          Continue
         </button>
       )}
     </div>

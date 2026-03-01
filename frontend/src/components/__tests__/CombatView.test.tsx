@@ -148,4 +148,37 @@ describe('CombatView', () => {
     render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     expect(screen.getByRole('button', { name: /bloodletter/i })).toBeInTheDocument()
   })
+
+  it('Archivist deals bonus damage on correct guess when 5+ letters hidden', async () => {
+    // 6-letter word = 6 hidden letters > 5 threshold → Archivist gets +1 dmg/occ
+    // floor=1, word='castle' (6 letters) → enemy HP = 6×1×2 = 12
+    // Guess 'a' (1 occ, hiddenCount=6 >= 5) → dmg = (2+1)×1 = 3. HP: 12→9
+    const archivistGame: GameState = { ...mockGame, word: 'castle', maskedWord: '_ _ _ _ _ _', firstLetter: 'c' }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ masked_word: '_ a _ _ _ _', correct: true, guessed_letters: ['a'], status: 'in_progress', occurrences: 1 }),
+    }))
+    render(<CombatView run={buildRun('archivist')} room={enemyRoom()} initialState={archivistGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => expect(screen.getByText(/9 \/ 12/)).toBeInTheDocument())
+  })
+
+  it('awards coins via onCombatEnd when enemy killed before word solved', async () => {
+    // word='act' (3 letters), floor=1 → enemy HP = 3×1×2 = 6
+    // 3 correct guesses (1 occ each, 2 dmg each) = 6 total damage → enemy dead, status stays in_progress
+    const mockGameAct: GameState = { ...mockGame, word: 'act', maskedWord: '_ _ _', firstLetter: 'a' }
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ masked_word: 'a _ _', correct: true, guessed_letters: ['a'], status: 'in_progress', occurrences: 1 }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ masked_word: 'a c _', correct: true, guessed_letters: ['a','c'], status: 'in_progress', occurrences: 1 }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ masked_word: 'a c t', correct: true, guessed_letters: ['a','c','t'], status: 'in_progress', occurrences: 1 }) })
+    )
+    const onCombatEnd = vi.fn()
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGameAct} floor={1} onCombatEnd={onCombatEnd} />)
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await userEvent.click(screen.getByRole('button', { name: 'C' }))
+    await userEvent.click(screen.getByRole('button', { name: 'T' }))
+    // enemy HP = 0 → useEffect fires finishCombat → combatDone=true → Continue shown
+    await waitFor(() => screen.getByRole('button', { name: /continue/i }))
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 5 }))
+  })
 })
