@@ -6,8 +6,9 @@ import App from '../../App'
 const mockGameResponse = {
   game_id: 'test-uuid',
   masked_word: '_ _ _ _ _ _ _ _',
-  max_wrong: 6,
-  wrong_guesses_left: 6,
+  word: 'testword',
+  category: 'general',
+  first_letter: 't',
   guessed_letters: [],
 }
 
@@ -81,9 +82,9 @@ describe('App', () => {
   })
 
   it('loads a fresh game board after clicking Continue following a won combat', async () => {
-    const game1 = { game_id: 'game-1', masked_word: '_ _ _', max_wrong: 6, wrong_guesses_left: 6, guessed_letters: [] }
-    const wonGuess = { correct: true, masked_word: 'c a t', wrong_guesses_left: 6, guessed_letters: ['c'], status: 'won', word: null }
-    const game2 = { game_id: 'game-2', masked_word: '_ _ _ _ _', max_wrong: 6, wrong_guesses_left: 6, guessed_letters: [] }
+    const game1 = { game_id: 'game-1', masked_word: '_ _ _', word: 'cat', category: 'general', first_letter: 'c', guessed_letters: [] }
+    const wonGuess = { correct: true, masked_word: 'c a t', guessed_letters: ['c'], status: 'won' }
+    const game2 = { game_id: 'game-2', masked_word: '_ _ _ _ _', word: 'brave', category: 'general', first_letter: 'b', guessed_letters: [] }
 
     vi.stubGlobal('fetch', vi.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => game1 })
@@ -128,7 +129,7 @@ describe('App', () => {
       json: async () => mockGameResponse,
     }))
     const { buildRun } = await import('../../runState')
-    const savedRun = buildRun()
+    const savedRun = buildRun('berserker')
     localStorage.setItem('hangman_run', JSON.stringify(savedRun))
     render(<App />)
     await waitFor(() => {

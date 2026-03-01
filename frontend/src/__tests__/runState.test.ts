@@ -54,7 +54,7 @@ describe('buildRooms', () => {
 
 describe('buildRun', () => {
   it('starts with correct defaults', () => {
-    const run = buildRun()
+    const run = buildRun('berserker')
     expect(run.hp).toBe(MAX_HP)
     expect(run.maxHp).toBe(MAX_HP)
     expect(run.coins).toBe(0)
@@ -76,13 +76,13 @@ describe('enemyHp', () => {
 
 describe('computeRoomsCleared', () => {
   it('returns completed room count plus previous floors', () => {
-    const run = buildRun()
+    const run = buildRun('berserker')
     run.rooms[0] = { ...run.rooms[0], completed: true }
     run.rooms[1] = { ...run.rooms[1], completed: true }
     expect(computeRoomsCleared(run)).toBe(2)
   })
   it('accounts for floor offset', () => {
-    const run = buildRun()
+    const run = buildRun('berserker')
     run.floor = 2
     run.rooms[0] = { ...run.rooms[0], completed: true }
     expect(computeRoomsCleared(run)).toBe(12) // 11 from floor 1 + 1 from floor 2
@@ -97,12 +97,12 @@ describe('localStorage helpers', () => {
     expect(loadRun()).toBeNull()
   })
   it('saveRun and loadRun round-trip', () => {
-    const run = buildRun()
+    const run = buildRun('berserker')
     saveRun(run)
     expect(loadRun()).toEqual(run)
   })
   it('clearRun removes saved run', () => {
-    saveRun(buildRun())
+    saveRun(buildRun('berserker'))
     clearRun()
     expect(loadRun()).toBeNull()
   })

@@ -6,8 +6,9 @@ import GameBoard from '../GameBoard'
 const mockInitialState = {
   gameId: 'test-id',
   maskedWord: '_ _ _',
-  maxWrong: 6,
-  wrongGuessesLeft: 6,
+  word: 'cat',
+  category: 'general',
+  firstLetter: 'c',
   guessedLetters: [],
   status: 'in_progress' as const,
 }

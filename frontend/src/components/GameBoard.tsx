@@ -20,7 +20,7 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain, playAg
   const [solvingMode, setSolvingMode] = useState(false)
   const [solveInput, setSolveInput] = useState('')
 
-  const wrongCount = game.maxWrong - game.wrongGuessesLeft
+  const wrongCount = game.guessedLetters.filter(l => !game.word.includes(l)).length
 
   const handleGuess = useCallback(async (letter: string) => {
     setLoading(true)
@@ -38,19 +38,19 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain, playAg
       }
       const updated: GameState = {
         gameId: initialState.gameId,
-        maxWrong: initialState.maxWrong,
         maskedWord: data.masked_word,
-        wrongGuessesLeft: data.wrong_guesses_left,
         guessedLetters: data.guessed_letters,
         status: data.status as GameStatus,
-        word: data.word ?? undefined,
+        word: initialState.word,
+        category: initialState.category,
+        firstLetter: initialState.firstLetter,
       }
       if (data.correct) {
         setCorrectLetters((prev) => [...prev, letter])
       }
       setGame(updated)
       if (updated.status === 'won' || updated.status === 'lost') {
-        const wrongGuessesMade = initialState.maxWrong - updated.wrongGuessesLeft
+        const wrongGuessesMade = updated.guessedLetters.filter(l => !updated.word.includes(l)).length
         onGameEnd(updated.status, wrongGuessesMade)
       }
     } catch {
@@ -79,16 +79,14 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain, playAg
       const updated: GameState = {
         ...game,
         maskedWord: data.masked_word,
-        wrongGuessesLeft: data.wrong_guesses_left,
         guessedLetters: data.guessed_letters,
         status: data.status as GameStatus,
-        word: data.word ?? undefined,
       }
       setGame(updated)
       setSolvingMode(false)
       setSolveInput('')
       if (updated.status === 'won' || updated.status === 'lost') {
-        const wrongGuessesMade = initialState.maxWrong - updated.wrongGuessesLeft
+        const wrongGuessesMade = updated.guessedLetters.filter(l => !updated.word.includes(l)).length
         onGameEnd(updated.status, wrongGuessesMade)
       }
     } catch {
@@ -117,7 +115,7 @@ export default function GameBoard({ initialState, onGameEnd, onPlayAgain, playAg
       <HangmanSvg wrongCount={wrongCount} />
       <WordDisplay maskedWord={game.maskedWord} />
       <p className="wrong-count">
-        {game.wrongGuessesLeft} guess{game.wrongGuessesLeft !== 1 ? 'es' : ''} remaining
+        {wrongCount} wrong guess{wrongCount !== 1 ? 'es' : ''}
       </p>
       {error && <p className="app__error">{error}</p>}
       {!isOver && (

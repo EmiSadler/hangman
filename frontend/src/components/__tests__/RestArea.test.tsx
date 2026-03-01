@@ -6,7 +6,7 @@ import type { RunState } from '../../types'
 import { buildRun } from '../../runState'
 
 function makeRun(overrides: Partial<RunState> = {}): RunState {
-  return { ...buildRun(), ...overrides }
+  return { ...buildRun('berserker'), ...overrides }
 }
 
 describe('RestArea', () => {

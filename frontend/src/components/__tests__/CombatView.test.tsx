@@ -8,8 +8,9 @@ import type { GameState, RunState } from '../../types'
 const mockGame: GameState = {
   gameId: 'test-id',
   maskedWord: '_ _ _',
-  maxWrong: 6,
-  wrongGuessesLeft: 6,
+  word: 'cat',
+  category: 'general',
+  firstLetter: 'c',
   guessedLetters: [],
   status: 'in_progress',
 }
@@ -22,14 +23,14 @@ describe('CombatView', () => {
   beforeEach(() => vi.restoreAllMocks())
 
   it('renders HP and coins', () => {
-    const run = { ...buildRun(), hp: 14, coins: 10 }
+    const run = { ...buildRun('berserker'), hp: 14, coins: 10 }
     render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     expect(screen.getByText(/14 \/ 50/)).toBeInTheDocument()
     expect(screen.getByText(/10/)).toBeInTheDocument()
   })
 
   it('renders the GameBoard (hangman figure)', () => {
-    render(<CombatView run={buildRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     expect(screen.getByLabelText(/hangman figure/i)).toBeInTheDocument()
   })
 
@@ -45,7 +46,7 @@ describe('CombatView', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => lostResponse }))
 
     const onCombatEnd = vi.fn()
-    const run: RunState = { ...buildRun(), hp: 14, coins: 5 }
+    const run: RunState = { ...buildRun('berserker'), hp: 14, coins: 5 }
     render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={onCombatEnd} />)
 
     await userEvent.click(screen.getByRole('button', { name: 'A' }))
@@ -68,7 +69,7 @@ describe('CombatView', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => wonResponse }))
 
     const onCombatEnd = vi.fn()
-    const run: RunState = { ...buildRun(), hp: 20, coins: 0 }
+    const run: RunState = { ...buildRun('berserker'), hp: 20, coins: 0 }
     render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={onCombatEnd} />)
 
     await userEvent.click(screen.getByRole('button', { name: 'A' }))
@@ -90,7 +91,7 @@ describe('CombatView', () => {
     }
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => lostResponse }))
 
-    const run: RunState = { ...buildRun(), hp: 14, coins: 5 }
+    const run: RunState = { ...buildRun('berserker'), hp: 14, coins: 5 }
     render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: 'A' }))
 
@@ -110,8 +111,8 @@ describe('CombatView', () => {
     }
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => lostResponse }))
 
-    const run: RunState = { ...buildRun(), hp: 10, coins: 5 }
-    render(<CombatView run={run} room={enemyRoom()} initialState={{ ...mockGame, wrongGuessesLeft: 0 }} floor={1} onCombatEnd={vi.fn()} />)
+    const run: RunState = { ...buildRun('berserker'), hp: 10, coins: 5 }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: 'A' }))
 
     await waitFor(() => screen.getByRole('button', { name: /play again/i }))
@@ -131,7 +132,7 @@ describe('CombatView', () => {
 
     const onCombatEnd = vi.fn()
     const bossRoom = { type: 'boss' as const, completed: false, gameId: null }
-    render(<CombatView run={buildRun()} room={bossRoom} initialState={mockGame} floor={1} onCombatEnd={onCombatEnd} />)
+    render(<CombatView run={buildRun('berserker')} room={bossRoom} initialState={mockGame} floor={1} onCombatEnd={onCombatEnd} />)
 
     await userEvent.click(screen.getByRole('button', { name: 'A' }))
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))

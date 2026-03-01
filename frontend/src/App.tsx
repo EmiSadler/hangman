@@ -61,8 +61,9 @@ export default function App() {
       const game: GameState = {
         gameId: data.game_id,
         maskedWord: data.masked_word,
-        maxWrong: data.max_wrong,
-        wrongGuessesLeft: data.wrong_guesses_left,
+        word: data.word,
+        category: data.category,
+        firstLetter: data.first_letter,
         guessedLetters: data.guessed_letters,
         status: 'in_progress' as GameStatus,
       }
@@ -79,7 +80,7 @@ export default function App() {
   }
 
   async function handleStartRun() {
-    const newRun = buildRun()
+    const newRun = buildRun('berserker')
     saveRun(newRun)
     setRun(newRun)
     await fetchAndEnterCombat(newRun, 'enemy', false)
