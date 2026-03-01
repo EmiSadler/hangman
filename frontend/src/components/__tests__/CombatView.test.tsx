@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import CombatView from '../CombatView'
 import { buildRun } from '../../runState'
 import type { GameState, RunState } from '../../types'
+import type { ArtifactId } from '../../types'
 
 const mockGame: GameState = {
   gameId: 'test-id',
@@ -193,5 +194,53 @@ describe('CombatView', () => {
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
     expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 5 }))
+  })
+
+  it('Iron Shield starts combat with 2 shield', () => {
+    const run = { ...buildRun('berserker'), artifacts: ['iron_shield'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    expect(screen.getByText(/🛡 2/)).toBeInTheDocument()
+  })
+
+  it('Battle Scar gives Berserker 1 starting rage (increases first correct hit damage)', async () => {
+    // word='cat', floor=1 → enemy HP=6
+    // With rage=1: correct 'a' (1 occ) → (2+1)×1 = 3. HP: 6→3
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({
+        masked_word: '_ a _', correct: true,
+        guessed_letters: ['a'], status: 'in_progress', occurrences: 1,
+      }),
+    }))
+    const run = { ...buildRun('berserker'), artifacts: ['battle_scar'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => expect(screen.getByText(/3 \/ 6/)).toBeInTheDocument())
+  })
+
+  it('Vowel Seeker shows vowel count at combat start', () => {
+    // word='cat' has 1 vowel ('a')
+    const run = { ...buildRun('berserker'), artifacts: ['vowel_seeker'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    expect(screen.getByText(/1 vowel/i)).toBeInTheDocument()
+  })
+
+  it('Category Scroll shows category for non-Archivist', () => {
+    const run = { ...buildRun('berserker'), artifacts: ['category_scroll'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    expect(screen.getByText(/📜.*animals/i)).toBeInTheDocument()
+  })
+
+  it('Category Scroll does NOT duplicate category info for Archivist', () => {
+    const run = { ...buildRun('archivist'), artifacts: ['category_scroll'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // Archivist info bar shows category once; category_scroll should not show a second
+    expect(screen.getAllByText(/animals/i).length).toBe(1)
+  })
+
+  it('Crystal Ball reveals a letter from the word at combat start', () => {
+    const run = { ...buildRun('berserker'), artifacts: ['crystal_ball'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // word='cat', firstLetter='c' → crystal ball picks 'a' or 't'
+    expect(screen.getByText(/🔮.*is in this word/i)).toBeInTheDocument()
   })
 })

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { GameState, Room, RunState, ClassName } from '../types'
+import type { GameState, Room, RunState, ClassName, ArtifactId } from '../types'
 import {
   DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT,
   COINS_PER_ENEMY, COINS_PER_BOSS, enemyHp,
@@ -90,12 +90,16 @@ function calcDamageTaken(
 export default function CombatView({ run, room, initialState, floor, onCombatEnd }: Props) {
   const maxEnemyHp = enemyHp(initialState.word.length, floor)
   const [currentEnemyHp, setCurrentEnemyHp] = useState(maxEnemyHp)
-  const [displayRun, setDisplayRun] = useState<RunState>(run)
+  const [displayRun, setDisplayRun] = useState<RunState>(() =>
+    run.artifacts.includes('iron_shield' as ArtifactId)
+      ? { ...run, shield: run.shield + 2 }
+      : run
+  )
   const [combatDone, setCombatDone] = useState(false)
   const [pendingRun, setPendingRun] = useState<RunState | null>(null)
 
   // Per-encounter state
-  const [rage, setRage] = useState(0)
+  const [rage, setRage] = useState(() => run.artifacts.includes('battle_scar' as ArtifactId) ? 1 : 0)
   const [combo, setCombo] = useState(0)
   const [cooldown, setCooldown] = useState(0)
   const [abilityUsed, setAbilityUsed] = useState(false)
@@ -109,6 +113,22 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       finishCombat(true)
     }
   }, [currentEnemyHp]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // --- Artifact info-display values (computed once from props) ---
+  const vowelCount = run.artifacts.includes('vowel_seeker' as ArtifactId)
+    ? [...initialState.word].filter(l => VOWELS.has(l)).length
+    : null
+
+  const showCategoryScroll =
+    run.artifacts.includes('category_scroll' as ArtifactId) && run.className !== 'archivist'
+
+  const [crystalBallLetter] = useState<string | null>(() => {
+    if (!run.artifacts.includes('crystal_ball' as ArtifactId)) return null
+    const candidates = [...new Set(initialState.word.split(''))]
+      .filter(l => !initialState.guessedLetters.includes(l) && l !== initialState.firstLetter)
+    if (candidates.length === 0) return null
+    return candidates[Math.floor(Math.random() * candidates.length)]
+  })
 
   function handleGuessResult(letter: string, correct: boolean, occurrences: number) {
     const isAbilityHit = abilityMode && correct
@@ -240,6 +260,19 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           <span>Category: {initialState.category}</span>
           <span>First letter: {initialState.firstLetter.toUpperCase()}</span>
           <span>{initialState.word.length} letters</span>
+        </div>
+      )}
+      {(vowelCount !== null || crystalBallLetter !== null || showCategoryScroll) && (
+        <div className="combat-view__artifact-info">
+          {vowelCount !== null && (
+            <span>🔍 {vowelCount} {vowelCount === 1 ? 'vowel' : 'vowels'} in this word</span>
+          )}
+          {crystalBallLetter !== null && (
+            <span>🔮 {crystalBallLetter.toUpperCase()} is in this word</span>
+          )}
+          {showCategoryScroll && (
+            <span>📜 Category: {initialState.category}</span>
+          )}
         </div>
       )}
       <GameBoard
