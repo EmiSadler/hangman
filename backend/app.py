@@ -7,6 +7,7 @@ app = Flask(__name__)
 CORS(app)
 
 games: dict[str, dict] = {}
+# NOTE: games are never evicted from this dict (acceptable for a prototype, would need TTL or cleanup for production use).
 
 
 @app.route("/")

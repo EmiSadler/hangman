@@ -1,6 +1,13 @@
 import json
 import pytest
+import game as game_module
 from app import app, games
+
+@pytest.fixture(autouse=True)
+def reset_word_cache():
+    game_module._WORDS = None
+    yield
+    game_module._WORDS = None
 
 @pytest.fixture
 def client():
