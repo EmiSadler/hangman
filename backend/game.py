@@ -1,22 +1,30 @@
 import random
 import os
+import csv
 
-_WORDS: list[str] | None = None
+_WORDS: list[tuple[str, str]] | None = None
 
-def load_words() -> list[str]:
+def load_words() -> list[tuple[str, str]]:
     global _WORDS
     if _WORDS is None:
         words_path = os.path.join(os.path.dirname(__file__), "words.txt")
-        with open(words_path) as f:
-            _WORDS = [line.strip().lower() for line in f if line.strip().isalpha()]
+        result = []
+        with open(words_path, newline='') as f:
+            for row in csv.reader(f):
+                if len(row) >= 2:
+                    word = row[0].strip().lower()
+                    category = row[1].strip()
+                    if word.isalpha():
+                        result.append((word, category))
+        _WORDS = result
     return _WORDS
 
-def select_word(room_type: str = 'enemy') -> str:
+def select_word(room_type: str = 'enemy') -> tuple[str, str]:
     if room_type not in ('enemy', 'boss'):
         raise ValueError(f"Invalid room_type: {room_type!r}")
     words = load_words()
     if room_type == 'boss':
-        words = [w for w in words if len(w) >= 8]
+        words = [(w, c) for w, c in words if len(w) >= 8]
         if not words:
             raise ValueError("No words available for room_type='boss'")
     return random.choice(words)
@@ -25,15 +33,15 @@ def mask_word(word: str, guessed_letters: list[str]) -> str:
     return " ".join(c if c in guessed_letters else "_" for c in word)
 
 def new_game(room_type: str = 'enemy', hint: bool = False) -> dict:
-    word = select_word(room_type)
+    word, category = select_word(room_type)
     guessed: list[str] = []
     if hint:
         guessed = [random.choice(list(word))]
     return {
         "word": word,
+        "category": category,
+        "first_letter": word[0],
         "guessed_letters": guessed,
-        "max_wrong": 6,
-        "wrong_count": 0,
         "status": "in_progress",
     }
 
@@ -47,42 +55,13 @@ def make_guess(game: dict, letter: str) -> dict:
         raise ValueError(f"'{letter}' already guessed")
     game["guessed_letters"].append(letter)
     correct = letter in game["word"]
-    if not correct:
-        game["wrong_count"] += 1
+    occurrences = game["word"].count(letter) if correct else 0
     if all(c in game["guessed_letters"] for c in game["word"]):
         game["status"] = "won"
-    elif game["wrong_count"] >= game["max_wrong"]:
-        game["status"] = "lost"
     return {
         "correct": correct,
         "masked_word": mask_word(game["word"], game["guessed_letters"]),
-        "wrong_guesses_left": game["max_wrong"] - game["wrong_count"],
         "guessed_letters": list(game["guessed_letters"]),
         "status": game["status"],
-        "word": game["word"] if game["status"] == "lost" else None,
-    }
-
-def solve_word(game: dict, word: str) -> dict:
-    if game["status"] != "in_progress":
-        raise ValueError("Game is already over")
-    word = word.strip().lower()
-    if not word:
-        raise ValueError("Guess must be a non-empty word")
-    if not word.isalpha():
-        raise ValueError("Guess must contain only letters")
-    correct = word == game["word"]
-    if correct:
-        game["status"] = "won"
-    else:
-        game["wrong_count"] += 1
-        if game["wrong_count"] >= game["max_wrong"]:
-            game["status"] = "lost"
-    masked = " ".join(game["word"]) if correct else mask_word(game["word"], game["guessed_letters"])
-    return {
-        "correct": correct,
-        "masked_word": masked,
-        "wrong_guesses_left": game["max_wrong"] - game["wrong_count"],
-        "guessed_letters": list(game["guessed_letters"]),
-        "status": game["status"],
-        "word": game["word"] if game["status"] == "lost" else None,
+        "occurrences": occurrences,
     }
