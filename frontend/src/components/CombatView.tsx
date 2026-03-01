@@ -45,6 +45,7 @@ function calcDamageDealt(
   combo: number,
   hiddenCount: number,
   isAbilityHit: boolean,
+  artifacts: ArtifactId[],
 ): number {
   let dmgPerOcc = BASE_DAMAGE_PER_HIT
 
@@ -67,6 +68,7 @@ function calcDamageDealt(
   if (isAbilityHit && (className === 'berserker' || className === 'rogue')) {
     total *= 2
   }
+  if (artifacts.includes('short_sword')) total += 1
   return total
 }
 
@@ -75,6 +77,7 @@ function calcDamageTaken(
   className: ClassName,
   isAbilityMiss: boolean,
   shield: number,
+  artifacts: ArtifactId[],
 ): { playerDmg: number; shieldLeft: number } {
   const isConsonant = !VOWELS.has(letter)
   let dmg = DAMAGE_PER_WRONG
@@ -82,6 +85,7 @@ function calcDamageTaken(
   if (className === 'vowel_mage' && isConsonant) dmg += 1
   if (className === 'rogue') dmg += 1
   if (className === 'berserker' && isAbilityMiss) dmg *= 2
+  if (artifacts.includes('thick_skin')) dmg = Math.max(1, dmg - 1)
 
   const absorbed = Math.min(shield, dmg)
   return { playerDmg: dmg - absorbed, shieldLeft: shield - absorbed }
@@ -104,6 +108,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   const [cooldown, setCooldown] = useState(0)
   const [abilityUsed, setAbilityUsed] = useState(false)
   const [abilityMode, setAbilityMode] = useState(false)
+  const [bloodDaggerReady, setBloodDaggerReady] = useState(false)
   const [hiddenCount, setHiddenCount] = useState(
     () => initialState.maskedWord.split(' ').filter(c => c === '_').length
   )
@@ -137,16 +142,23 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     if (abilityMode) {
       setAbilityMode(false)
       if (run.className === 'vowel_mage' || run.className === 'berserker' || run.className === 'rogue') {
-        setCooldown(ABILITY_COOLDOWNS[run.className])
+        const baseCooldown = ABILITY_COOLDOWNS[run.className]
+        setCooldown(Math.max(0, baseCooldown - (run.artifacts.includes('mana_crystal') ? 1 : 0)))
       }
       if (run.className === 'archivist') setAbilityUsed(true)
     }
 
     if (correct) {
       const currentHidden = hiddenCount
-      // Capture combo before incrementing (for Rogue timing)
       const currentCombo = combo
-      const dmg = calcDamageDealt(letter, occurrences, run.className, rage, currentCombo, currentHidden, isAbilityHit)
+      let dmg = calcDamageDealt(
+        letter, occurrences, run.className, rage, currentCombo,
+        currentHidden, isAbilityHit, run.artifacts,
+      )
+      if (bloodDaggerReady && run.artifacts.includes('blood_dagger')) {
+        dmg += 2
+        setBloodDaggerReady(false)
+      }
       setCurrentEnemyHp(prev => Math.max(0, prev - dmg))
       setHiddenCount(prev => Math.max(0, prev - occurrences))
       if (run.className === 'rogue') setCombo(prev => prev + 1)
@@ -154,10 +166,15 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         setDisplayRun(prev => ({ ...prev, shield: prev.shield + occurrences }))
       }
     } else {
-      if (run.className === 'rogue') setCombo(0)
+      if (run.className === 'rogue') {
+        setCombo(run.artifacts.includes('shadow_cloak') ? Math.max(1, combo) : 0)
+      }
       if (run.className === 'berserker') setRage(prev => prev + 1)
+      if (run.artifacts.includes('blood_dagger')) setBloodDaggerReady(true)
 
-      const { playerDmg, shieldLeft } = calcDamageTaken(letter, run.className, isAbilityMiss, displayRun.shield)
+      const { playerDmg, shieldLeft } = calcDamageTaken(
+        letter, run.className, isAbilityMiss, displayRun.shield, run.artifacts,
+      )
       const newHp = Math.max(0, displayRun.hp - playerDmg)
       setDisplayRun(prev => ({ ...prev, hp: newHp, shield: shieldLeft }))
       if (newHp <= 0) {

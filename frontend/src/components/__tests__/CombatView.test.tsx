@@ -243,4 +243,80 @@ describe('CombatView', () => {
     // word='cat', firstLetter='c' → crystal ball picks 'a' or 't'
     expect(screen.getByText(/🔮.*is in this word/i)).toBeInTheDocument()
   })
+
+  it('Short Sword deals +1 bonus damage per correct guess', async () => {
+    // word='cat', floor=1 → enemy HP=6. 'a' (1 occ): base 2 + short_sword 1 = 3. HP: 6→3
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({
+        masked_word: '_ a _', correct: true,
+        guessed_letters: ['a'], status: 'in_progress', occurrences: 1,
+      }),
+    }))
+    const run = { ...buildRun('berserker'), artifacts: ['short_sword'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => expect(screen.getByText(/3 \/ 6/)).toBeInTheDocument())
+  })
+
+  it('Thick Skin reduces damage taken by 1', async () => {
+    // DAMAGE_PER_WRONG=2, thick_skin → 1 dmg taken. HP: 50→49
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
+    }))
+    const run = { ...buildRun('berserker'), hp: 50, artifacts: ['thick_skin'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await waitFor(() => expect(screen.getByText(/49 \/ 50/)).toBeInTheDocument())
+  })
+
+  it('Blood Dagger gives +2 bonus on next correct hit after a wrong guess', async () => {
+    // wrong guess first (bloodDaggerReady=true, rage 0→1), then correct 'a' (1 occ):
+    // dmg = (base 2 + rage 1) * 1 + blood_dagger 2 = 5. HP: 6→1
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGuessResponse({
+        masked_word: '_ a _', correct: true, guessed_letters: ['z', 'a'], status: 'in_progress', occurrences: 1,
+      }) })
+    )
+    const run = { ...buildRun('berserker'), artifacts: ['blood_dagger'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => expect(screen.getByText(/1 \/ 6/)).toBeInTheDocument())
+  })
+
+  it('Shadow Cloak keeps Rogue combo at 1 after a wrong guess', async () => {
+    // 'c' correct (combo 0→1, dmg (2+0)*1=2, HP 6→4)
+    // 'z' wrong (shadow_cloak: combo stays max(1,1)=1)
+    // 'a' correct (combo=1, dmg (2+1)*1=3, HP 4→1)
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGuessResponse({
+        masked_word: 'c _ _', correct: true, guessed_letters: ['c'], status: 'in_progress', occurrences: 1,
+      }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGuessResponse({
+        masked_word: 'c a _', correct: true, guessed_letters: ['c', 'z', 'a'], status: 'in_progress', occurrences: 1,
+      }) })
+    )
+    const run = { ...buildRun('rogue'), artifacts: ['shadow_cloak'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'C' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => expect(screen.getByText(/1 \/ 6/)).toBeInTheDocument())
+  })
+
+  it('Mana Crystal reduces Berserker ability cooldown by 1 after use', async () => {
+    // Berserker base cooldown = 4. With mana_crystal → 3
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
+    }))
+    const run = { ...buildRun('berserker'), artifacts: ['mana_crystal'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /bloodletter$/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /bloodletter \(3\)/i })).toBeInTheDocument()
+    )
+  })
 })
