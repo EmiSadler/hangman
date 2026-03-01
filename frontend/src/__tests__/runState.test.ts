@@ -67,6 +67,10 @@ describe('buildRun', () => {
     expect(run.pendingReveal).toBe(false)
     expect(run.rooms.length).toBe(11)
   })
+  it('starts with an empty artifacts array', () => {
+    const run = buildRun('berserker')
+    expect(run.artifacts).toEqual([])
+  })
 })
 
 describe('enemyHp', () => {

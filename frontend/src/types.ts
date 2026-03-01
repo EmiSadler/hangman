@@ -38,6 +38,7 @@ export interface RunState {
   pendingReveal: boolean
   className: ClassName
   shield: number
+  artifacts: ArtifactId[]
 }
 
 export interface RunScore {

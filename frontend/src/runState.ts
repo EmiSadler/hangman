@@ -40,6 +40,7 @@ export function buildRun(className: ClassName): RunState {
     pendingReveal: false,
     className,
     shield: 0,
+    artifacts: [],
   }
 }
 
@@ -55,7 +56,9 @@ export function loadRun(): RunState | null {
   try {
     const raw = localStorage.getItem(RUN_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as RunState
+    const parsed = JSON.parse(raw) as RunState
+    if (!parsed.artifacts) parsed.artifacts = []
+    return parsed
   } catch {
     return null
   }
