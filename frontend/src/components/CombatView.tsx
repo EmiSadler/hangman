@@ -106,7 +106,9 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   const [rage, setRage] = useState(() => run.artifacts.includes('battle_scar' as ArtifactId) ? 1 : 0)
   const [combo, setCombo] = useState(0)
   const [cooldown, setCooldown] = useState(0)
-  const [abilityUsed, setAbilityUsed] = useState(false)
+  const [abilityUsesLeft, setAbilityUsesLeft] = useState(() =>
+    run.className === 'archivist' && run.artifacts.includes('ancient_codex') ? 2 : 1
+  )
   const [abilityMode, setAbilityMode] = useState(false)
   const [bloodDaggerReady, setBloodDaggerReady] = useState(false)
   const [hiddenCount, setHiddenCount] = useState(
@@ -146,7 +148,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         const baseCooldown = ABILITY_COOLDOWNS[run.className]
         setCooldown(Math.max(0, baseCooldown - (run.artifacts.includes('mana_crystal') ? 1 : 0)))
       }
-      if (run.className === 'archivist') setAbilityUsed(true)
+      if (run.className === 'archivist') setAbilityUsesLeft(prev => Math.max(0, prev - 1))
     }
 
     if (correct) {
@@ -192,8 +194,18 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   }
 
   function finishCombat(won: boolean, hpOverride?: number) {
-    const coinsEarned = won ? (room.type === 'boss' ? COINS_PER_BOSS : COINS_PER_ENEMY) : 0
-    const effectiveHp = hpOverride ?? displayRun.hp
+    let coinsEarned = won ? (room.type === 'boss' ? COINS_PER_BOSS : COINS_PER_ENEMY) : 0
+    let effectiveHp = hpOverride ?? displayRun.hp
+
+    if (won) {
+      if (run.artifacts.includes('healing_salve')) {
+        effectiveHp = Math.min(displayRun.maxHp, effectiveHp + 3)
+      }
+      if (run.artifacts.includes('gold_tooth')) {
+        coinsEarned += 5
+      }
+    }
+
     const updated: RunState = {
       ...displayRun,
       hp: effectiveHp,
@@ -219,14 +231,14 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
 
   const abilityName = ABILITY_NAMES[run.className]
   const abilityAvailable = run.className === 'archivist'
-    ? !abilityUsed
+    ? abilityUsesLeft > 0
     : cooldown === 0
   const abilityDisabled = !abilityAvailable || abilityMode || combatDone || enemyDead
   const abilityLabel = abilityMode
     ? `${abilityName} — choose a letter`
     : cooldown > 0
     ? `${abilityName} (${cooldown})`
-    : abilityUsed && run.className === 'archivist'
+    : abilityUsesLeft === 0 && run.className === 'archivist'
     ? `${abilityName} (used)`
     : abilityName
 

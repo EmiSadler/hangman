@@ -354,4 +354,87 @@ describe('CombatView', () => {
       expect(screen.getByRole('button', { name: /bloodletter \(3\)/i })).toBeInTheDocument()
     )
   })
+
+  it('Healing Salve restores 3 HP after combat win', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({
+        masked_word: 'c a t', correct: true,
+        guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 1,
+      }),
+    }))
+    const run = { ...buildRun('berserker'), hp: 40, artifacts: ['healing_salve'] as ArtifactId[] }
+    const onCombatEnd = vi.fn()
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={onCombatEnd} />)
+    await userEvent.click(screen.getByRole('button', { name: 'T' }))
+    await waitFor(() => screen.getByRole('button', { name: /continue/i }))
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ hp: 43 }))
+  })
+
+  it('Healing Salve caps HP at maxHp', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({
+        masked_word: 'c a t', correct: true,
+        guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 1,
+      }),
+    }))
+    const run = { ...buildRun('berserker'), hp: 49, maxHp: 50, artifacts: ['healing_salve'] as ArtifactId[] }
+    const onCombatEnd = vi.fn()
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={onCombatEnd} />)
+    await userEvent.click(screen.getByRole('button', { name: 'T' }))
+    await waitFor(() => screen.getByRole('button', { name: /continue/i }))
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ hp: 50 }))
+  })
+
+  it('Gold Tooth awards +5 bonus coins after combat win', async () => {
+    // COINS_PER_ENEMY=5 + gold_tooth 5 = 10 total
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({
+        masked_word: 'c a t', correct: true,
+        guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 1,
+      }),
+    }))
+    const run = { ...buildRun('berserker'), coins: 0, artifacts: ['gold_tooth'] as ArtifactId[] }
+    const onCombatEnd = vi.fn()
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={onCombatEnd} />)
+    await userEvent.click(screen.getByRole('button', { name: 'T' }))
+    await waitFor(() => screen.getByRole('button', { name: /continue/i }))
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 10 }))
+  })
+
+  it('Ancient Codex allows Archivist to use Cross Reference a second time', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
+    }))
+    const run = { ...buildRun('archivist'), artifacts: ['ancient_codex'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // Use ability (puts in abilityMode), then make a guess to fire it
+    await userEvent.click(screen.getByRole('button', { name: /cross reference$/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    // After first use, button should still be available (not show 'used')
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /cross reference$/i })).not.toBeDisabled()
+    )
+  })
+
+  it('Ancient Codex Archivist ability is disabled after two uses', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
+    }))
+    const run = { ...buildRun('archivist'), artifacts: ['ancient_codex'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // First use
+    await userEvent.click(screen.getByRole('button', { name: /cross reference$/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    // Second use
+    await waitFor(() => screen.getByRole('button', { name: /cross reference$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /cross reference$/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'X' }))
+    // Now should show 'used' and be disabled
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /cross reference.*used/i })).toBeDisabled()
+    )
+  })
 })
