@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { RunState, ArtifactId } from '../types'
 import { sampleArtifacts, type Artifact } from '../artifacts'
+import ArtifactShelf from './ArtifactShelf'
 
 interface Props {
   run: RunState
@@ -32,6 +33,7 @@ export default function TreasureArea({ run, onChoose }: Props) {
             {art.emoji} {art.name} — {art.description}
           </button>
         ))}
+        <ArtifactShelf artifacts={run.artifacts} />
       </div>
     )
   }
@@ -52,6 +54,7 @@ export default function TreasureArea({ run, onChoose }: Props) {
       <button className="btn-treasure" onClick={handleFindArtifact}>
         Find an Artifact
       </button>
+      <ArtifactShelf artifacts={run.artifacts} />
     </div>
   )
 }

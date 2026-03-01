@@ -1,5 +1,6 @@
 import type { RunState } from '../types'
 import { HEAL_COST, HEAL_AMOUNT } from '../runState'
+import ArtifactShelf from './ArtifactShelf'
 
 interface Props {
   run: RunState
@@ -28,6 +29,7 @@ export default function RestArea({ run, onHeal, onLeave }: Props) {
         Heal +{HEAL_AMOUNT} HP ({HEAL_COST} coins)
       </button>
       <button className="btn-leave" onClick={onLeave}>Leave</button>
+      <ArtifactShelf artifacts={run.artifacts} />
     </div>
   )
 }

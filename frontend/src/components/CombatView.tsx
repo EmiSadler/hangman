@@ -5,6 +5,7 @@ import {
   COINS_PER_ENEMY, COINS_PER_BOSS, enemyHp,
 } from '../runState'
 import GameBoard from './GameBoard'
+import ArtifactShelf from './ArtifactShelf'
 
 interface Props {
   run: RunState
@@ -305,6 +306,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           )}
         </div>
       )}
+      <ArtifactShelf artifacts={run.artifacts} />
       <GameBoard
         initialState={initialState}
         onGuessResult={handleGuessResult}
