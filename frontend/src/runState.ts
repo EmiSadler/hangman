@@ -1,4 +1,4 @@
-import type { Room, RunState, RunScore, RoomType } from './types'
+import type { Room, RunState, RunScore, RoomType, ClassName } from './types'
 
 export const MAX_HP = 50
 export const DAMAGE_PER_WRONG = 2
@@ -27,7 +27,7 @@ export function buildRooms(floor: number): Room[] {
   return getFloorLayout(floor).map(type => ({ type, completed: false, gameId: null }))
 }
 
-export function buildRun(): RunState {
+export function buildRun(className: ClassName): RunState {
   return {
     hp: MAX_HP,
     maxHp: MAX_HP,
@@ -37,6 +37,8 @@ export function buildRun(): RunState {
     rooms: buildRooms(1),
     status: 'in_progress',
     pendingReveal: false,
+    className,
+    shield: 0,
   }
 }
 

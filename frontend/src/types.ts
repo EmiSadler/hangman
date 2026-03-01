@@ -1,13 +1,15 @@
 export type GameStatus = 'in_progress' | 'won' | 'lost'
 
+export type ClassName = 'vowel_mage' | 'archivist' | 'berserker' | 'rogue'
+
 export interface GameState {
   gameId: string
   maskedWord: string
-  maxWrong: number
-  wrongGuessesLeft: number
   guessedLetters: string[]
   status: GameStatus
-  word?: string
+  word: string
+  category: string
+  firstLetter: string
 }
 
 export type RoomType = 'enemy' | 'boss' | 'rest' | 'treasure'
@@ -27,6 +29,8 @@ export interface RunState {
   rooms: Room[]
   status: 'in_progress' | 'won' | 'lost'
   pendingReveal: boolean
+  className: ClassName
+  shield: number
 }
 
 export interface RunScore {

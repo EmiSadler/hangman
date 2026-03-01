@@ -4,6 +4,7 @@ import {
   loadRunScore, saveRunScore, enemyHp, computeRoomsCleared,
   MAX_HP, DAMAGE_PER_WRONG, COINS_PER_ENEMY, COINS_PER_BOSS, HEAL_COST, HEAL_AMOUNT,
 } from '../runState'
+import type { ClassName } from '../types'
 
 describe('constants', () => {
   it('MAX_HP is 50', () => expect(MAX_HP).toBe(50))
@@ -120,5 +121,24 @@ describe('localStorage helpers', () => {
   it('loadRunScore returns zeros on invalid JSON', () => {
     localStorage.setItem('hangman_score', 'bad')
     expect(loadRunScore()).toEqual({ runsCleared: 0, runsFailed: 0, bestRooms: 0 })
+  })
+})
+
+describe('buildRun with className', () => {
+  it('stores className on RunState', () => {
+    const run = buildRun('vowel_mage')
+    expect(run.className).toBe('vowel_mage')
+  })
+
+  it('initialises shield to 0', () => {
+    const run = buildRun('berserker')
+    expect(run.shield).toBe(0)
+  })
+
+  it('accepts all four class names', () => {
+    const classes: ClassName[] = ['vowel_mage', 'archivist', 'berserker', 'rogue']
+    for (const cls of classes) {
+      expect(() => buildRun(cls)).not.toThrow()
+    }
   })
 })
