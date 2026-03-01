@@ -100,10 +100,9 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   const [cooldown, setCooldown] = useState(0)
   const [abilityUsed, setAbilityUsed] = useState(false)
   const [abilityMode, setAbilityMode] = useState(false)
-
-  function countHidden(maskedWord: string): number {
-    return maskedWord.split(' ').filter(c => c === '_').length
-  }
+  const [hiddenCount, setHiddenCount] = useState(
+    () => initialState.maskedWord.split(' ').filter(c => c === '_').length
+  )
 
   function handleGuessResult(letter: string, correct: boolean, occurrences: number) {
     const isAbilityHit = abilityMode && correct
@@ -118,11 +117,12 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     }
 
     if (correct) {
-      const currentHidden = countHidden(initialState.maskedWord)
+      const currentHidden = hiddenCount
       // Capture combo before incrementing (for Rogue timing)
       const currentCombo = combo
       const dmg = calcDamageDealt(letter, occurrences, run.className, rage, currentCombo, currentHidden, isAbilityHit)
       setCurrentEnemyHp(prev => Math.max(0, prev - dmg))
+      setHiddenCount(prev => Math.max(0, prev - occurrences))
       if (run.className === 'rogue') setCombo(prev => prev + 1)
       if (run.className === 'vowel_mage' && abilityMode && VOWELS.has(letter)) {
         setDisplayRun(prev => ({ ...prev, shield: prev.shield + occurrences }))

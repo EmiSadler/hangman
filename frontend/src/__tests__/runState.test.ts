@@ -2,13 +2,16 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
   getFloorLayout, buildRooms, buildRun, loadRun, saveRun, clearRun,
   loadRunScore, saveRunScore, enemyHp, computeRoomsCleared,
-  MAX_HP, DAMAGE_PER_WRONG, COINS_PER_ENEMY, COINS_PER_BOSS, HEAL_COST, HEAL_AMOUNT,
+  MAX_HP, DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT, COINS_PER_ENEMY, COINS_PER_BOSS, HEAL_COST, HEAL_AMOUNT,
 } from '../runState'
 import type { ClassName } from '../types'
 
 describe('constants', () => {
   it('MAX_HP is 50', () => expect(MAX_HP).toBe(50))
   it('DAMAGE_PER_WRONG is 2', () => expect(DAMAGE_PER_WRONG).toBe(2))
+  it('BASE_DAMAGE_PER_HIT is 2', () => {
+    expect(BASE_DAMAGE_PER_HIT).toBe(2)
+  })
   it('COINS_PER_ENEMY is 5', () => expect(COINS_PER_ENEMY).toBe(5))
   it('COINS_PER_BOSS is 20', () => expect(COINS_PER_BOSS).toBe(20))
   it('HEAL_COST is 10', () => expect(HEAL_COST).toBe(10))
