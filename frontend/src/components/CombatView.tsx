@@ -1,6 +1,9 @@
-import { useRef, useState } from 'react'
-import type { GameState, Room, RunState } from '../types'
-import { DAMAGE_PER_WRONG, COINS_PER_ENEMY, COINS_PER_BOSS } from '../runState'
+import { useState } from 'react'
+import type { GameState, Room, RunState, ClassName } from '../types'
+import {
+  DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT,
+  COINS_PER_ENEMY, COINS_PER_BOSS, enemyHp,
+} from '../runState'
 import GameBoard from './GameBoard'
 
 interface Props {
@@ -11,52 +14,223 @@ interface Props {
   onCombatEnd: (updatedRun: RunState) => void
 }
 
-export default function CombatView({ run, room, initialState, floor, onCombatEnd }: Props) {
-  const [displayRun, setDisplayRun] = useState<RunState>(run)
-  const [combatOver, setCombatOver] = useState(false)
-  const wrongCountRef = useRef(0)
-  const pendingRunRef = useRef<RunState | null>(null)
+const CLASS_LABELS: Record<ClassName, string> = {
+  vowel_mage: '🧙 Vowel Mage',
+  archivist: '📚 Archivist',
+  berserker: '🪓 Berserker',
+  rogue: '🗡️ Rogue',
+}
 
-  function handleGuessResult(_letter: string, correct: boolean, _occurrences: number) {
-    if (!correct) {
-      wrongCountRef.current += 1
-      setDisplayRun(prev => ({ ...prev, hp: Math.max(0, prev.hp - DAMAGE_PER_WRONG) }))
+const ABILITY_NAMES: Record<ClassName, string> = {
+  vowel_mage: 'Resonance',
+  archivist: 'Cross Reference',
+  berserker: 'Bloodletter',
+  rogue: 'Backstab',
+}
+
+const ABILITY_COOLDOWNS: Record<ClassName, number> = {
+  vowel_mage: 3,
+  archivist: 0, // once per encounter, tracked separately
+  berserker: 4,
+  rogue: 3,
+}
+
+const VOWELS = new Set(['a', 'e', 'i', 'o', 'u'])
+
+function calcDamageDealt(
+  letter: string,
+  occurrences: number,
+  className: ClassName,
+  rage: number,
+  combo: number,
+  hiddenCount: number,
+  isAbilityHit: boolean,
+): number {
+  let dmgPerOcc = BASE_DAMAGE_PER_HIT
+
+  switch (className) {
+    case 'vowel_mage':
+      if (VOWELS.has(letter)) dmgPerOcc += 1
+      break
+    case 'archivist':
+      if (hiddenCount >= 5) dmgPerOcc += 1
+      break
+    case 'berserker':
+      dmgPerOcc = BASE_DAMAGE_PER_HIT + rage
+      break
+    case 'rogue':
+      dmgPerOcc = BASE_DAMAGE_PER_HIT + combo
+      break
+  }
+
+  let total = dmgPerOcc * occurrences
+  if (isAbilityHit && (className === 'berserker' || className === 'rogue')) {
+    total *= 2
+  }
+  return total
+}
+
+function calcDamageTaken(
+  letter: string,
+  className: ClassName,
+  isAbilityMiss: boolean,
+  shield: number,
+): { playerDmg: number; shieldLeft: number } {
+  const isConsonant = !VOWELS.has(letter)
+  let dmg = DAMAGE_PER_WRONG
+
+  if (className === 'vowel_mage' && isConsonant) dmg += 1
+  if (className === 'rogue') dmg += 1
+  if (className === 'berserker' && isAbilityMiss) dmg *= 2
+
+  const absorbed = Math.min(shield, dmg)
+  return { playerDmg: dmg - absorbed, shieldLeft: shield - absorbed }
+}
+
+export default function CombatView({ run, room, initialState, floor, onCombatEnd }: Props) {
+  const maxEnemyHp = enemyHp(initialState.word.length, floor)
+  const [currentEnemyHp, setCurrentEnemyHp] = useState(maxEnemyHp)
+  const [displayRun, setDisplayRun] = useState<RunState>(run)
+  const [combatDone, setCombatDone] = useState(false)
+  const [pendingRun, setPendingRun] = useState<RunState | null>(null)
+
+  // Per-encounter state
+  const [rage, setRage] = useState(0)
+  const [combo, setCombo] = useState(0)
+  const [cooldown, setCooldown] = useState(0)
+  const [abilityUsed, setAbilityUsed] = useState(false)
+  const [abilityMode, setAbilityMode] = useState(false)
+
+  function countHidden(maskedWord: string): number {
+    return maskedWord.split(' ').filter(c => c === '_').length
+  }
+
+  function handleGuessResult(letter: string, correct: boolean, occurrences: number) {
+    const isAbilityHit = abilityMode && correct
+    const isAbilityMiss = abilityMode && !correct
+
+    if (abilityMode) {
+      setAbilityMode(false)
+      if (run.className === 'vowel_mage' || run.className === 'berserker' || run.className === 'rogue') {
+        setCooldown(ABILITY_COOLDOWNS[run.className])
+      }
+      if (run.className === 'archivist') setAbilityUsed(true)
     }
+
+    if (correct) {
+      const currentHidden = countHidden(initialState.maskedWord)
+      // Capture combo before incrementing (for Rogue timing)
+      const currentCombo = combo
+      const dmg = calcDamageDealt(letter, occurrences, run.className, rage, currentCombo, currentHidden, isAbilityHit)
+      setCurrentEnemyHp(prev => Math.max(0, prev - dmg))
+      if (run.className === 'rogue') setCombo(prev => prev + 1)
+      if (run.className === 'vowel_mage' && abilityMode && VOWELS.has(letter)) {
+        setDisplayRun(prev => ({ ...prev, shield: prev.shield + occurrences }))
+      }
+    } else {
+      if (run.className === 'rogue') setCombo(0)
+      if (run.className === 'berserker') setRage(prev => prev + 1)
+
+      const { playerDmg, shieldLeft } = calcDamageTaken(letter, run.className, isAbilityMiss, displayRun.shield)
+      const newHp = Math.max(0, displayRun.hp - playerDmg)
+      setDisplayRun(prev => ({ ...prev, hp: newHp, shield: shieldLeft }))
+      if (newHp <= 0) {
+        finishCombat(false)
+        return
+      }
+    }
+
+    if (!abilityMode) setCooldown(prev => Math.max(0, prev - 1))
   }
 
   function handleWordSolved() {
-    const coinsEarned = room.type === 'boss' ? COINS_PER_BOSS : COINS_PER_ENEMY
-    const updated: RunState = {
-      ...run,
-      hp: displayRun.hp,
-      coins: run.coins + coinsEarned,
-    }
-    pendingRunRef.current = updated
-    setDisplayRun(updated)
-    setCombatOver(true)
+    finishCombat(true)
   }
 
-  function handlePlayAgain() {
-    onCombatEnd(pendingRunRef.current ?? run)
+  function finishCombat(won: boolean) {
+    const coinsEarned = won ? (room.type === 'boss' ? COINS_PER_BOSS : COINS_PER_ENEMY) : 0
+    setDisplayRun(prev => {
+      const updated: RunState = {
+        ...prev,
+        coins: prev.coins + coinsEarned,
+        status: prev.hp <= 0 ? 'lost' : run.status,
+      }
+      setPendingRun(updated)
+      return updated
+    })
+    setCombatDone(true)
   }
+
+  function handleContinue() {
+    onCombatEnd(pendingRun ?? displayRun)
+  }
+
+  function handleAbility() {
+    setAbilityMode(true)
+  }
+
+  const enemyDead = currentEnemyHp <= 0 && !combatDone
 
   const playAgainLabel = displayRun.hp <= 0 ? 'Play Again' : 'Continue'
 
+  const abilityName = ABILITY_NAMES[run.className]
+  const abilityAvailable = run.className === 'archivist'
+    ? !abilityUsed
+    : cooldown === 0
+  const abilityDisabled = !abilityAvailable || abilityMode || combatDone || enemyDead
+  const abilityLabel = abilityMode
+    ? `${abilityName} — choose a letter`
+    : cooldown > 0
+    ? `${abilityName} (${cooldown})`
+    : abilityUsed && run.className === 'archivist'
+    ? `${abilityName} (used)`
+    : abilityName
+
   return (
     <div className="combat-view">
+      <div className="combat-view__class-label">{CLASS_LABELS[run.className]}</div>
       <div className="combat-view__stats">
-        <span className="combat-view__hp">HP: {displayRun.hp} / {displayRun.maxHp}</span>
+        <span className="combat-view__hp">
+          HP: {displayRun.hp} / {displayRun.maxHp}
+          {displayRun.shield > 0 && <span className="combat-view__shield"> 🛡 {displayRun.shield}</span>}
+        </span>
         <span className="combat-view__coins">Coins: {displayRun.coins}</span>
+      </div>
+      <div className="combat-view__enemy">
+        <div className="combat-view__enemy-sprite-placeholder" aria-hidden="true" />
+        <div className="combat-view__enemy-hp-label">
+          Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
+        </div>
+        <div className="combat-view__enemy-hp-bar">
+          <div
+            className="combat-view__enemy-hp-fill"
+            style={{ width: `${Math.max(0, (currentEnemyHp / maxEnemyHp) * 100)}%` }}
+          />
+        </div>
       </div>
       <p className="combat-view__floor">Floor {floor}</p>
       <GameBoard
         initialState={initialState}
         onGuessResult={handleGuessResult}
         onWordSolved={handleWordSolved}
-        onPlayAgain={handlePlayAgain}
+        onPlayAgain={handleContinue}
         playAgainLabel={playAgainLabel}
-        combatOver={combatOver}
+        combatOver={combatDone || enemyDead}
       />
+      {!combatDone && !enemyDead && (
+        <button
+          className="btn-ability"
+          onClick={handleAbility}
+          disabled={abilityDisabled}
+        >
+          {abilityLabel}
+        </button>
+      )}
+      {enemyDead && !combatDone && (
+        <button className="btn-continue" onClick={() => finishCombat(true)}>
+          Continue
+        </button>
+      )}
     </div>
   )
 }

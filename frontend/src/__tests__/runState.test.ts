@@ -67,10 +67,10 @@ describe('buildRun', () => {
 })
 
 describe('enemyHp', () => {
-  it('returns wordLength * floor', () => {
-    expect(enemyHp(5, 1)).toBe(5)
-    expect(enemyHp(8, 2)).toBe(16)
-    expect(enemyHp(10, 3)).toBe(30)
+  it('returns wordLength * floor * 2', () => {
+    expect(enemyHp(5, 1)).toBe(10)
+    expect(enemyHp(8, 2)).toBe(32)
+    expect(enemyHp(10, 3)).toBe(60)
   })
 })
 

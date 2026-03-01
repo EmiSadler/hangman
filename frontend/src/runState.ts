@@ -2,6 +2,7 @@ import type { Room, RunState, RunScore, RoomType, ClassName } from './types'
 
 export const MAX_HP = 50
 export const DAMAGE_PER_WRONG = 2
+export const BASE_DAMAGE_PER_HIT = 2
 export const COINS_PER_ENEMY = 5
 export const COINS_PER_BOSS = 20
 export const HEAL_COST = 10
@@ -43,7 +44,7 @@ export function buildRun(className: ClassName): RunState {
 }
 
 export function enemyHp(wordLength: number, floor: number): number {
-  return wordLength * floor
+  return wordLength * floor * 2
 }
 
 export function computeRoomsCleared(run: RunState): number {

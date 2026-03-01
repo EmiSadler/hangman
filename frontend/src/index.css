@@ -498,3 +498,93 @@ button:disabled {
 .btn-give-up:hover {
   opacity: 1;
 }
+
+/* ── CombatView additions ───────────────────────────────── */
+
+.combat-view__class-label {
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.combat-view__shield {
+  color: #4a90d9;
+  margin-left: 0.5rem;
+}
+
+.combat-view__enemy {
+  margin: 0.75rem 0;
+}
+
+.combat-view__enemy-sprite-placeholder {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 0.5rem;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.combat-view__enemy-hp-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.combat-view__enemy-hp-bar {
+  width: 200px;
+  height: 12px;
+  background: var(--border);
+  border-radius: 6px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.combat-view__enemy-hp-fill {
+  height: 100%;
+  background: var(--wrong);
+  border-radius: 6px;
+  transition: width 0.2s ease;
+}
+
+.btn-ability {
+  display: block;
+  margin: 0.75rem auto 0;
+  padding: 0.5rem 1.5rem;
+  background: var(--surface);
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-ability:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-ability:disabled {
+  opacity: 0.4;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.btn-continue {
+  display: block;
+  margin: 1rem auto 0;
+  padding: 0.6rem 2rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.btn-continue:hover {
+  background: var(--accent-hover);
+}
