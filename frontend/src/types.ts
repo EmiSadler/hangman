@@ -2,6 +2,13 @@ export type GameStatus = 'in_progress' | 'won' | 'lost'
 
 export type ClassName = 'vowel_mage' | 'archivist' | 'berserker' | 'rogue'
 
+export type ArtifactId =
+  | 'vowel_seeker' | 'crystal_ball' | 'category_scroll'
+  | 'short_sword' | 'blood_dagger'
+  | 'iron_shield' | 'thick_skin' | 'chainmail'
+  | 'healing_salve' | 'gold_tooth'
+  | 'battle_scar' | 'shadow_cloak' | 'mana_crystal' | 'ancient_codex'
+
 export interface GameState {
   gameId: string
   maskedWord: string
