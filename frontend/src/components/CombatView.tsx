@@ -199,6 +199,12 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         <div className="combat-view__player">
           <div className="combat-view__class-label">{CLASS_LABELS[run.className]}</div>
           <div className="combat-view__player-sprite-placeholder" aria-hidden="true" />
+          <div className="combat-view__player-hp-bar">
+            <div
+              className="combat-view__player-hp-fill"
+              style={{ width: `${Math.max(0, (displayRun.hp / displayRun.maxHp) * 100)}%` }}
+            />
+          </div>
           <div className="combat-view__stats">
             <span className="combat-view__hp">
               HP: {displayRun.hp} / {displayRun.maxHp}
