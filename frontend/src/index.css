@@ -163,6 +163,14 @@ button:disabled {
   box-shadow: none;
 }
 
+.key--blocked {
+  opacity: 0.35;
+  text-decoration: line-through;
+  border-color: var(--wrong);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
 /* ── GameResult ────────────────────────────────────────── */
 
 .game-result {

@@ -28,4 +28,17 @@ describe('Keyboard', () => {
     render(<Keyboard guessedLetters={[]} correctLetters={[]} onGuess={vi.fn()} disabled={true} />)
     screen.getAllByRole('button').forEach((btn) => expect(btn).toBeDisabled())
   })
+
+  it('renders blocked letters as disabled with key--blocked class', () => {
+    render(<Keyboard guessedLetters={[]} correctLetters={[]} onGuess={vi.fn()} disabled={false} blockedLetters={['a', 'b']} />)
+    const aBtn = screen.getByRole('button', { name: 'A' })
+    expect(aBtn).toBeDisabled()
+    expect(aBtn).toHaveClass('key--blocked')
+    expect(screen.getByRole('button', { name: 'B' })).toBeDisabled()
+  })
+
+  it('does not apply key--blocked class when blockedLetters is empty', () => {
+    render(<Keyboard guessedLetters={[]} correctLetters={[]} onGuess={vi.fn()} disabled={false} />)
+    screen.getAllByRole('button').forEach(btn => expect(btn).not.toHaveClass('key--blocked'))
+  })
 })

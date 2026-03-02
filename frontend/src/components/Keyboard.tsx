@@ -3,6 +3,7 @@ interface Props {
   correctLetters: string[]
   onGuess: (letter: string) => void
   disabled: boolean
+  blockedLetters?: string[]
 }
 
 const ROWS = [
@@ -11,7 +12,7 @@ const ROWS = [
   ['z','x','c','v','b','n','m'],
 ]
 
-export default function Keyboard({ guessedLetters, correctLetters, onGuess, disabled }: Props) {
+export default function Keyboard({ guessedLetters, correctLetters, onGuess, disabled, blockedLetters = [] }: Props) {
   return (
     <div className="keyboard">
       {ROWS.map((row, ri) => (
@@ -19,16 +20,18 @@ export default function Keyboard({ guessedLetters, correctLetters, onGuess, disa
           {row.map((letter) => {
             const wasGuessed = guessedLetters.includes(letter)
             const wasCorrect = correctLetters.includes(letter)
+            const isBlocked = blockedLetters.includes(letter)
             const keyClass = [
               'key',
               wasGuessed ? (wasCorrect ? 'key--correct' : 'key--wrong') : '',
+              isBlocked ? 'key--blocked' : '',
             ].filter(Boolean).join(' ')
             return (
               <button
                 key={letter}
                 className={keyClass}
                 onClick={() => onGuess(letter)}
-                disabled={disabled || wasGuessed}
+                disabled={disabled || wasGuessed || isBlocked}
               >
                 {letter.toUpperCase()}
               </button>
