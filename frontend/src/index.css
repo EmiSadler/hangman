@@ -762,6 +762,14 @@ button:disabled {
   padding: 0.4rem 0;
 }
 
+.artifact-shelf--vertical {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  padding: 0;
+  gap: 0.3rem;
+  justify-content: center;
+}
+
 .artifact-shelf__item {
   position: relative;
   cursor: default;

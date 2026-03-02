@@ -29,4 +29,14 @@ describe('ArtifactShelf', () => {
     await userEvent.unhover(item)
     expect(screen.queryByText(/\+1 bonus damage/i)).not.toBeInTheDocument()
   })
+
+  it('applies vertical modifier class when vertical prop is true', () => {
+    const { container } = render(<ArtifactShelf artifacts={['short_sword']} vertical />)
+    expect(container.firstChild).toHaveClass('artifact-shelf--vertical')
+  })
+
+  it('does not apply vertical modifier class by default', () => {
+    const { container } = render(<ArtifactShelf artifacts={['short_sword']} />)
+    expect(container.firstChild).not.toHaveClass('artifact-shelf--vertical')
+  })
 })

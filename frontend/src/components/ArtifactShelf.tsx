@@ -4,15 +4,16 @@ import { ARTIFACTS } from '../artifacts'
 
 interface Props {
   artifacts: ArtifactId[]
+  vertical?: boolean
 }
 
-export default function ArtifactShelf({ artifacts }: Props) {
+export default function ArtifactShelf({ artifacts, vertical = false }: Props) {
   const [tooltip, setTooltip] = useState<ArtifactId | null>(null)
 
   if (artifacts.length === 0) return null
 
   return (
-    <div className="artifact-shelf">
+    <div className={`artifact-shelf${vertical ? ' artifact-shelf--vertical' : ''}`}>
       {artifacts.map(id => {
         const art = ARTIFACTS[id]
         return (
