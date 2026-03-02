@@ -20,6 +20,10 @@ function enemyRoom() {
   return { type: 'enemy' as const, completed: false, gameId: null }
 }
 
+function bossRoom() {
+  return { type: 'boss' as const, completed: false, gameId: null }
+}
+
 function mockGuessResponse(overrides = {}) {
   return {
     masked_word: '_ _ _', correct: false,
@@ -417,6 +421,21 @@ describe('CombatView', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /cross reference$/i })).not.toBeDisabled()
     )
+  })
+
+  it('displays an enemy name for a regular room', () => {
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // The enemy name element exists and has non-empty text
+    const nameEl = document.querySelector('.combat-view__enemy-name')
+    expect(nameEl).not.toBeNull()
+    expect(nameEl!.textContent!.trim().length).toBeGreaterThan(0)
+  })
+
+  it('displays a boss name for a boss room', () => {
+    render(<CombatView run={buildRun('berserker')} room={bossRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    const nameEl = document.querySelector('.combat-view__enemy-name')
+    expect(nameEl).not.toBeNull()
+    expect(nameEl!.textContent!.trim().length).toBeGreaterThan(0)
   })
 
   it('Ancient Codex Archivist ability is disabled after two uses', async () => {

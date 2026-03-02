@@ -523,6 +523,18 @@ button:disabled {
   color: var(--accent);
 }
 
+.combat-view__enemy-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--wrong);
+}
+
+.combat-view__player-sprite-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .combat-view__player-sprite-placeholder {
   width: 80px;
   height: 80px;

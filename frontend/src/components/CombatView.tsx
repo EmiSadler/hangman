@@ -36,6 +36,18 @@ const ABILITY_COOLDOWNS: Record<ClassName, number> = {
   rogue: 3,
 }
 
+const ENEMY_NAMES = [
+  'Swamp Monster', 'Skeleton Archer', 'Mutated Bee', 'Cave Troll',
+  'Plague Rat', 'Stone Golem', 'Shadow Wraith', 'Bog Witch',
+  'Dire Wolf', 'Fungal Horror', 'Cursed Scarecrow', 'Sand Shark',
+]
+
+const BOSS_NAMES = [
+  'Death Knight', 'Ancient Vampire', 'The Hollow King',
+  'Bone Colossus', 'Plague Bringer', 'Void Serpent',
+  'The Undying', 'Abyssal Tyrant',
+]
+
 const VOWELS = new Set(['a', 'e', 'i', 'o', 'u'])
 
 function calcDamageDealt(
@@ -129,6 +141,11 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
 
   const showCategoryScroll =
     run.artifacts.includes('category_scroll' as ArtifactId) && run.className !== 'archivist'
+
+  const [enemyName] = useState(() => {
+    const pool = room.type === 'boss' ? BOSS_NAMES : ENEMY_NAMES
+    return pool[Math.floor(Math.random() * pool.length)]
+  })
 
   const [crystalBallLetter] = useState<string | null>(() => {
     if (!run.artifacts.includes('crystal_ball' as ArtifactId)) return null
@@ -249,7 +266,10 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       <div className="combat-view__arena">
         <div className="combat-view__player">
           <div className="combat-view__class-label">{CLASS_LABELS[run.className]}</div>
-          <div className="combat-view__player-sprite-placeholder" aria-hidden="true" />
+          <div className="combat-view__player-sprite-row">
+            <ArtifactShelf artifacts={run.artifacts} vertical />
+            <div className="combat-view__player-sprite-placeholder" aria-hidden="true" />
+          </div>
           <div className="combat-view__player-hp-bar">
             <div
               className="combat-view__player-hp-fill"
@@ -274,6 +294,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           )}
         </div>
         <div className="combat-view__enemy">
+          <div className="combat-view__enemy-name">{enemyName}</div>
           <div className="combat-view__enemy-sprite-placeholder" aria-hidden="true" />
           <div className="combat-view__enemy-hp-label">
             Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
@@ -306,7 +327,6 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           )}
         </div>
       )}
-      <ArtifactShelf artifacts={run.artifacts} />
       <GameBoard
         initialState={initialState}
         onGuessResult={handleGuessResult}
