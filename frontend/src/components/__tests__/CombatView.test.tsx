@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import CombatView from '../CombatView'
+import CombatView, { ENEMY_NAMES, BOSS_NAMES } from '../CombatView'
 import { buildRun } from '../../runState'
 import type { GameState, RunState } from '../../types'
 import type { ArtifactId } from '../../types'
@@ -425,17 +425,16 @@ describe('CombatView', () => {
 
   it('displays an enemy name for a regular room', () => {
     render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
-    // The enemy name element exists and has non-empty text
     const nameEl = document.querySelector('.combat-view__enemy-name')
     expect(nameEl).not.toBeNull()
-    expect(nameEl!.textContent!.trim().length).toBeGreaterThan(0)
+    expect(ENEMY_NAMES).toContain(nameEl!.textContent!.trim())
   })
 
   it('displays a boss name for a boss room', () => {
     render(<CombatView run={buildRun('berserker')} room={bossRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     const nameEl = document.querySelector('.combat-view__enemy-name')
     expect(nameEl).not.toBeNull()
-    expect(nameEl!.textContent!.trim().length).toBeGreaterThan(0)
+    expect(BOSS_NAMES).toContain(nameEl!.textContent!.trim())
   })
 
   it('Ancient Codex Archivist ability is disabled after two uses', async () => {

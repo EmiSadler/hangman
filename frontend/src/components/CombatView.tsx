@@ -36,13 +36,13 @@ const ABILITY_COOLDOWNS: Record<ClassName, number> = {
   rogue: 3,
 }
 
-const ENEMY_NAMES = [
+export const ENEMY_NAMES = [
   'Swamp Monster', 'Skeleton Archer', 'Mutated Bee', 'Cave Troll',
   'Plague Rat', 'Stone Golem', 'Shadow Wraith', 'Bog Witch',
   'Dire Wolf', 'Fungal Horror', 'Cursed Scarecrow', 'Sand Shark',
 ]
 
-const BOSS_NAMES = [
+export const BOSS_NAMES = [
   'Death Knight', 'Ancient Vampire', 'The Hollow King',
   'Bone Colossus', 'Plague Bringer', 'Void Serpent',
   'The Undying', 'Abyssal Tyrant',
