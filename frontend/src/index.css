@@ -768,6 +768,7 @@ button:disabled {
   padding: 0;
   gap: 0.3rem;
   justify-content: center;
+  align-items: center;
 }
 
 .artifact-shelf__item {
