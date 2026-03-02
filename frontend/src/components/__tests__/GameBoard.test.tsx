@@ -56,6 +56,15 @@ describe('GameBoard', () => {
     await userEvent.type(screen.getByPlaceholderText(/type the word/i), 'dog')
     await userEvent.click(screen.getByRole('button', { name: /^solve$/i }))
     expect(onWrongSolve).toHaveBeenCalledOnce()
+    expect(screen.getByPlaceholderText(/type the word/i)).toHaveValue('')
+  })
+
+  it('displays an error when the solve endpoint returns an error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, json: async () => ({ error: 'bad request' }) }))
+    render(<GameBoard initialState={mockGame} onGuessResult={vi.fn()} onWordSolved={vi.fn()} onPlayAgain={vi.fn()} />)
+    await userEvent.type(screen.getByPlaceholderText(/type the word/i), 'cat')
+    await userEvent.click(screen.getByRole('button', { name: /^solve$/i }))
+    expect(screen.getByText('bad request')).toBeInTheDocument()
   })
 
   it('passes blockedLetters to Keyboard, disabling those keys', () => {
