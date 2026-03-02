@@ -34,11 +34,13 @@ describe('Keyboard', () => {
     const aBtn = screen.getByRole('button', { name: 'A' })
     expect(aBtn).toBeDisabled()
     expect(aBtn).toHaveClass('key--blocked')
-    expect(screen.getByRole('button', { name: 'B' })).toBeDisabled()
+    const bBtn = screen.getByRole('button', { name: 'B' })
+    expect(bBtn).toBeDisabled()
+    expect(bBtn).toHaveClass('key--blocked')
   })
 
   it('does not apply key--blocked class when blockedLetters is empty', () => {
-    render(<Keyboard guessedLetters={[]} correctLetters={[]} onGuess={vi.fn()} disabled={false} />)
+    render(<Keyboard guessedLetters={[]} correctLetters={[]} onGuess={vi.fn()} disabled={false} blockedLetters={[]} />)
     screen.getAllByRole('button').forEach(btn => expect(btn).not.toHaveClass('key--blocked'))
   })
 })

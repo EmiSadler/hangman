@@ -168,7 +168,6 @@ button:disabled {
   text-decoration: line-through;
   border-color: var(--wrong);
   color: var(--text-muted);
-  cursor: not-allowed;
 }
 
 /* ── GameResult ────────────────────────────────────────── */
