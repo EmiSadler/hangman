@@ -48,6 +48,8 @@ export const BOSS_NAMES = [
   'The Undying', 'Abyssal Tyrant',
 ]
 
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('')
+
 const VOWELS = new Set(['a', 'e', 'i', 'o', 'u'])
 
 function calcDamageDealt(
@@ -127,6 +129,8 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   const [hiddenCount, setHiddenCount] = useState(
     () => initialState.maskedWord.split(' ').filter(c => c === '_').length
   )
+  const [blockedLetters, setBlockedLetters] = useState<string[]>([])
+  const [guessedLetters, setGuessedLetters] = useState<string[]>(initialState.guessedLetters)
 
   useEffect(() => {
     if (currentEnemyHp <= 0 && !combatDone) {
@@ -159,6 +163,8 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     const isAbilityHit = abilityMode && correct
     const isAbilityMiss = abilityMode && !correct
     const wasAbilityMode = abilityMode
+
+    setGuessedLetters(prev => [...prev, letter])
 
     if (wasAbilityMode) {
       setAbilityMode(false)
@@ -243,6 +249,20 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     setAbilityMode(true)
   }
 
+  function handleHeal() {
+    const available = ALPHABET.filter(l => !guessedLetters.includes(l) && !blockedLetters.includes(l))
+    if (available.length === 0) return
+    const blocked = available[Math.floor(Math.random() * available.length)]
+    setBlockedLetters(prev => [...prev, blocked])
+    setDisplayRun(prev => ({ ...prev, hp: Math.min(prev.maxHp, prev.hp + 5) }))
+  }
+
+  function handleWrongSolve() {
+    const newHp = Math.max(0, displayRun.hp - 5)
+    setDisplayRun(prev => ({ ...prev, hp: newHp }))
+    if (newHp <= 0) finishCombat(false, newHp)
+  }
+
   const enemyDead = currentEnemyHp <= 0 && !combatDone
 
   const playAgainLabel = displayRun.hp <= 0 ? 'Play Again' : 'Continue'
@@ -292,6 +312,15 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
               {abilityLabel}
             </button>
           )}
+          {!combatDone && !enemyDead && (
+            <button
+              className="btn-heal"
+              onClick={handleHeal}
+              disabled={displayRun.hp >= displayRun.maxHp || ALPHABET.every(l => guessedLetters.includes(l) || blockedLetters.includes(l))}
+            >
+              🩹 Heal (+5 HP)
+            </button>
+          )}
         </div>
         <div className="combat-view__enemy">
           <div className="combat-view__enemy-name">{enemyName}</div>
@@ -334,6 +363,8 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         onPlayAgain={handleContinue}
         playAgainLabel={playAgainLabel}
         combatOver={combatDone || enemyDead}
+        blockedLetters={blockedLetters}
+        onWrongSolve={handleWrongSolve}
       />
     </div>
   )

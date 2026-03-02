@@ -24,6 +24,10 @@ function bossRoom() {
   return { type: 'boss' as const, completed: false, gameId: null }
 }
 
+function lowHpRun() {
+  return { ...buildRun('berserker'), hp: 20 }
+}
+
 function mockGuessResponse(overrides = {}) {
   return {
     masked_word: '_ _ _', correct: false,
@@ -454,5 +458,17 @@ describe('CombatView', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /cross reference.*used/i })).toBeDisabled()
     )
+  })
+
+  it('heal button increases player HP by 5', async () => {
+    render(<CombatView run={lowHpRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    expect(screen.getByText(/HP: 20/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /heal/i }))
+    expect(screen.getByText(/HP: 25/)).toBeInTheDocument()
+  })
+
+  it('heal button is disabled when HP is full', () => {
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /heal/i })).toBeDisabled()
   })
 })

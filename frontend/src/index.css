@@ -668,6 +668,30 @@ button:disabled {
   color: var(--text-muted);
 }
 
+.combat-view .btn-heal {
+  display: block;
+  margin: 0.4rem auto 0;
+  padding: 0.35rem 1rem;
+  border: 1px solid #4caf50;
+  border-radius: 4px;
+  background: transparent;
+  color: #4caf50;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.combat-view .btn-heal:hover:not(:disabled) {
+  background: #4caf50;
+  color: #fff;
+}
+
+.combat-view .btn-heal:disabled {
+  opacity: 0.4;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
 .btn-continue {
   display: block;
   margin: 1rem auto 0;
