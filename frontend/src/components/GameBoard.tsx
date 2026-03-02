@@ -11,18 +11,20 @@ interface Props {
   onPlayAgain: () => void
   playAgainLabel?: string
   combatOver?: boolean
+  blockedLetters?: string[]
+  onWrongSolve?: () => void
 }
 
-export default function GameBoard({ initialState, onGuessResult, onWordSolved, onPlayAgain, playAgainLabel, combatOver }: Props) {
+export default function GameBoard({ initialState, onGuessResult, onWordSolved, onPlayAgain, playAgainLabel, combatOver, blockedLetters = [], onWrongSolve }: Props) {
   const [game, setGame] = useState<GameState>(initialState)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [correctLetters, setCorrectLetters] = useState<string[]>([])
+  const [solveInput, setSolveInput] = useState('')
 
   const isWordSolved = game.status === 'won'
   const isOver = isWordSolved || !!combatOver
 
-  // When combatOver, show fully revealed word
   const displayMasked = combatOver
     ? initialState.word.split('').join(' ')
     : game.maskedWord
@@ -63,29 +65,83 @@ export default function GameBoard({ initialState, onGuessResult, onWordSolved, o
     }
   }, [initialState, game, isOver, loading, onGuessResult, onWordSolved])
 
+  const handleSolve = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isOver || loading || !solveInput.trim()) return
+    setLoading(true)
+    setError(null)
+    try {
+      const resp = await fetch(`/api/game/${initialState.gameId}/solve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word: solveInput.trim().toLowerCase() }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) {
+        setError(data.error ?? 'Something went wrong')
+        return
+      }
+      if (data.status === 'won') {
+        setGame(prev => ({ ...prev, status: 'won', maskedWord: data.masked_word }))
+        onWordSolved()
+      } else {
+        setSolveInput('')
+        onWrongSolve?.()
+      }
+    } catch {
+      setError('Could not reach server — try again')
+    } finally {
+      setLoading(false)
+    }
+  }, [initialState, isOver, loading, solveInput, onWordSolved, onWrongSolve])
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (isOver || loading) return
+      // Don't intercept keystrokes when typing in the solve input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
       const letter = e.key.toLowerCase()
       if (letter.length !== 1 || !/^[a-z]$/.test(letter)) return
       if (game.guessedLetters.includes(letter)) return
+      if (blockedLetters.includes(letter)) return
       handleGuess(letter)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOver, loading, game.guessedLetters, handleGuess])
+  }, [isOver, loading, game.guessedLetters, blockedLetters, handleGuess])
 
   return (
     <div className="game-board">
       <WordDisplay maskedWord={displayMasked} />
       {error && <p className="app__error">{error}</p>}
       {!isOver && (
-        <Keyboard
-          guessedLetters={game.guessedLetters}
-          correctLetters={correctLetters}
-          onGuess={handleGuess}
-          disabled={loading}
-        />
+        <>
+          <Keyboard
+            guessedLetters={game.guessedLetters}
+            correctLetters={correctLetters}
+            onGuess={handleGuess}
+            disabled={loading}
+            blockedLetters={blockedLetters}
+          />
+          <form className="game-board__solve-form" onSubmit={handleSolve}>
+            <input
+              className="game-board__solve-input"
+              type="text"
+              value={solveInput}
+              onChange={e => setSolveInput(e.target.value)}
+              placeholder="Type the word…"
+              disabled={loading}
+              autoComplete="off"
+            />
+            <button
+              type="submit"
+              className="game-board__solve-btn"
+              disabled={loading || !solveInput.trim()}
+            >
+              Solve
+            </button>
+          </form>
+        </>
       )}
       {(isWordSolved || !!combatOver) && (
         <GameResult

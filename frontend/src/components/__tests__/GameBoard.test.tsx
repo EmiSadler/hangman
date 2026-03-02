@@ -32,9 +32,36 @@ describe('GameBoard', () => {
     expect(screen.queryByLabelText(/hangman figure/i)).not.toBeInTheDocument()
   })
 
-  it('does NOT render a Solve Puzzle button', () => {
+  it('renders a solve input when game is in progress', () => {
     render(<GameBoard initialState={mockGame} onGuessResult={vi.fn()} onWordSolved={vi.fn()} onPlayAgain={vi.fn()} />)
-    expect(screen.queryByRole('button', { name: /solve puzzle/i })).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/type the word/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^solve$/i })).toBeInTheDocument()
+  })
+
+  it('calls onWordSolved on a correct solve attempt', async () => {
+    const solveResponse = { status: 'won', masked_word: 'c a t' }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => solveResponse }))
+    const onWordSolved = vi.fn()
+    render(<GameBoard initialState={mockGame} onGuessResult={vi.fn()} onWordSolved={onWordSolved} onPlayAgain={vi.fn()} />)
+    await userEvent.type(screen.getByPlaceholderText(/type the word/i), 'cat')
+    await userEvent.click(screen.getByRole('button', { name: /^solve$/i }))
+    expect(onWordSolved).toHaveBeenCalledOnce()
+  })
+
+  it('calls onWrongSolve on an incorrect solve attempt', async () => {
+    const wrongResponse = { status: 'in_progress', masked_word: '_ _ _' }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => wrongResponse }))
+    const onWrongSolve = vi.fn()
+    render(<GameBoard initialState={mockGame} onGuessResult={vi.fn()} onWordSolved={vi.fn()} onPlayAgain={vi.fn()} onWrongSolve={onWrongSolve} />)
+    await userEvent.type(screen.getByPlaceholderText(/type the word/i), 'dog')
+    await userEvent.click(screen.getByRole('button', { name: /^solve$/i }))
+    expect(onWrongSolve).toHaveBeenCalledOnce()
+  })
+
+  it('passes blockedLetters to Keyboard, disabling those keys', () => {
+    render(<GameBoard initialState={mockGame} onGuessResult={vi.fn()} onWordSolved={vi.fn()} onPlayAgain={vi.fn()} blockedLetters={['a']} />)
+    expect(screen.getByRole('button', { name: 'A' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'B' })).not.toBeDisabled()
   })
 
   it('calls onGuessResult with letter, correct=true, occurrences on correct guess', async () => {
