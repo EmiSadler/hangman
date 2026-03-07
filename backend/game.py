@@ -45,6 +45,40 @@ def new_game(room_type: str = 'enemy', hint: bool = False) -> dict:
         "status": "in_progress",
     }
 
+def create_session(words: list[tuple[str, str]]) -> dict:
+    enemy_pool = list(words)
+    boss_pool = [(w, c) for w, c in words if len(w) >= 8]
+    random.shuffle(enemy_pool)
+    random.shuffle(boss_pool)
+    return {
+        'enemy': enemy_pool,
+        'boss': boss_pool,
+        '_all_words': list(words),
+    }
+
+
+def new_game_from_session(session: dict, room_type: str = 'enemy', hint: bool = False) -> dict:
+    if room_type not in ('enemy', 'boss'):
+        raise ValueError(f"Invalid room_type: {room_type!r}")
+    pool = session[room_type]
+    if not pool:
+        all_words = session.get('_all_words') or load_words()
+        refill = list(all_words) if room_type == 'enemy' else [(w, c) for w, c in all_words if len(w) >= 8]
+        random.shuffle(refill)
+        pool.extend(refill)
+    word, category = pool.pop()
+    guessed: list[str] = []
+    if hint:
+        guessed = [random.choice(list(word))]
+    return {
+        'word': word,
+        'category': category,
+        'first_letter': word[0],
+        'guessed_letters': guessed,
+        'status': 'in_progress',
+    }
+
+
 def solve_word(game: dict, word: str) -> dict:
     if game["status"] != "in_progress":
         raise ValueError("Game is already over")

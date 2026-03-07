@@ -1,6 +1,6 @@
 import pytest
 import game as game_module
-from game import load_words, select_word, new_game, mask_word, make_guess, solve_word
+from game import load_words, select_word, new_game, mask_word, make_guess, solve_word, create_session, new_game_from_session
 
 @pytest.fixture(autouse=True)
 def reset_word_cache():
@@ -193,3 +193,70 @@ def test_solve_word_after_game_over_raises():
     game["status"] = "won"
     with pytest.raises(ValueError, match="already over"):
         solve_word(game, "cat")
+
+# --- create_session ---
+
+def test_create_session_has_enemy_and_boss_keys():
+    words = [('cat', 'animals'), ('elephant', 'animals'), ('butterfly', 'insects')]
+    session = create_session(words)
+    assert 'enemy' in session
+    assert 'boss' in session
+
+def test_create_session_enemy_pool_contains_all_words():
+    words = [('cat', 'animals'), ('elephant', 'animals')]
+    session = create_session(words)
+    assert len(session['enemy']) == 2
+
+def test_create_session_boss_pool_contains_only_long_words():
+    words = [('cat', 'animals'), ('elephant', 'animals'), ('butterfly', 'insects')]
+    session = create_session(words)
+    # 'elephant' (8) and 'butterfly' (9) qualify; 'cat' (3) does not
+    assert len(session['boss']) == 2
+    assert all(len(w) >= 8 for w, _ in session['boss'])
+
+# --- new_game_from_session ---
+
+def test_new_game_from_session_returns_valid_game():
+    words = [('cat', 'animals'), ('dog', 'animals')]
+    session = create_session(words)
+    game = new_game_from_session(session, room_type='enemy')
+    assert game['status'] == 'in_progress'
+    assert game['word'] in ('cat', 'dog')
+
+def test_new_game_from_session_pops_word_from_pool():
+    words = [('cat', 'animals'), ('dog', 'animals')]
+    session = create_session(words)
+    before = len(session['enemy'])
+    new_game_from_session(session, room_type='enemy')
+    assert len(session['enemy']) == before - 1
+
+def test_new_game_from_session_no_repeats_until_pool_exhausted():
+    words = [('cat', 'animals'), ('dog', 'animals'), ('fox', 'animals')]
+    session = create_session(words)
+    seen = set()
+    for _ in range(3):
+        game = new_game_from_session(session, room_type='enemy')
+        seen.add(game['word'])
+    assert len(seen) == 3  # all three distinct words used
+
+def test_new_game_from_session_reshuffles_when_pool_empty():
+    words = [('cat', 'animals')]
+    session = create_session(words)
+    new_game_from_session(session, room_type='enemy')
+    assert len(session['enemy']) == 0
+    # pool was exhausted; next call should reshuffle and succeed
+    game = new_game_from_session(session, room_type='enemy')
+    assert game['word'] == 'cat'
+
+def test_new_game_from_session_invalid_room_type_raises():
+    words = [('cat', 'animals')]
+    session = create_session(words)
+    with pytest.raises(ValueError, match='room_type'):
+        new_game_from_session(session, room_type='dragon')
+
+def test_new_game_from_session_hint_reveals_one_letter():
+    words = [('castle', 'places')]
+    session = create_session(words)
+    game = new_game_from_session(session, room_type='enemy', hint=True)
+    assert len(game['guessed_letters']) == 1
+    assert game['guessed_letters'][0] in 'castle'
