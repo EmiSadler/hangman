@@ -478,4 +478,16 @@ describe('CombatView', () => {
     await userEvent.click(screen.getByRole('button', { name: /heal/i }))
     expect(document.querySelectorAll('.key--blocked').length).toBe(1)
   })
+
+  it('wrong solve attempt when HP is low triggers game over', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => ({ status: 'in_progress' }),
+    }))
+    const run = { ...buildRun('berserker'), hp: 5 }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    const input = screen.getByPlaceholderText(/type the word/i)
+    await userEvent.type(input, 'wrong')
+    await userEvent.click(screen.getByRole('button', { name: /^solve$/i }))
+    await waitFor(() => screen.getByRole('button', { name: /play again/i }))
+  })
 })

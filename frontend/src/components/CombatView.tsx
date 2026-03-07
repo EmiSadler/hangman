@@ -260,7 +260,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
 
   function handleWrongSolve() {
     const newHp = Math.max(0, displayRun.hp - WRONG_SOLVE_PENALTY)
-    setDisplayRun(prev => ({ ...prev, hp: newHp }))
+    setDisplayRun(prev => ({ ...prev, hp: Math.max(0, prev.hp - WRONG_SOLVE_PENALTY) }))
     if (newHp <= 0) finishCombat(false, newHp)
   }
 

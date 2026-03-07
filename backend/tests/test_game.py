@@ -1,6 +1,6 @@
 import pytest
 import game as game_module
-from game import load_words, select_word, new_game, mask_word, make_guess
+from game import load_words, select_word, new_game, mask_word, make_guess, solve_word
 
 @pytest.fixture(autouse=True)
 def reset_word_cache():
@@ -166,3 +166,30 @@ def test_make_guess_masked_word_updates():
     game["word"] = "cat"
     result = make_guess(game, "a")
     assert result["masked_word"] == "_ a _"
+
+# --- solve_word ---
+
+def test_solve_word_correct_returns_won():
+    game = new_game()
+    game["word"] = "cat"
+    result = solve_word(game, "cat")
+    assert result["status"] == "won"
+
+def test_solve_word_wrong_returns_in_progress():
+    game = new_game()
+    game["word"] = "cat"
+    result = solve_word(game, "dog")
+    assert result["status"] == "in_progress"
+
+def test_solve_word_case_insensitive():
+    game = new_game()
+    game["word"] = "cat"
+    result = solve_word(game, "CAT")
+    assert result["status"] == "won"
+
+def test_solve_word_after_game_over_raises():
+    game = new_game()
+    game["word"] = "cat"
+    game["status"] = "won"
+    with pytest.raises(ValueError, match="already over"):
+        solve_word(game, "cat")

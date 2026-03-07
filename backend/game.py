@@ -45,6 +45,13 @@ def new_game(room_type: str = 'enemy', hint: bool = False) -> dict:
         "status": "in_progress",
     }
 
+def solve_word(game: dict, word: str) -> dict:
+    if game["status"] != "in_progress":
+        raise ValueError("Game is already over")
+    if word.lower() == game["word"]:
+        game["status"] = "won"
+    return {"status": game["status"]}
+
 def make_guess(game: dict, letter: str) -> dict:
     if game["status"] != "in_progress":
         raise ValueError("Game is already over")

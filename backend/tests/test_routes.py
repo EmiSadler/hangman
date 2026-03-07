@@ -167,3 +167,33 @@ def test_guess_missing_letter_returns_400(client):
     game_id = resp.get_json()["game_id"]
     resp = client.post(f"/api/game/{game_id}/guess", json={})
     assert resp.status_code == 400
+
+# --- POST /api/game/<game_id>/solve ---
+
+def test_solve_correct_word_returns_won(client):
+    resp = client.post("/api/game")
+    game_id = resp.get_json()["game_id"]
+    games[game_id]["word"] = "cat"
+    resp = client.post(f"/api/game/{game_id}/solve", json={"word": "cat"})
+    assert resp.status_code == 200
+    assert resp.get_json()["status"] == "won"
+
+def test_solve_wrong_word_returns_in_progress(client):
+    resp = client.post("/api/game")
+    game_id = resp.get_json()["game_id"]
+    games[game_id]["word"] = "cat"
+    resp = client.post(f"/api/game/{game_id}/solve", json={"word": "dog"})
+    assert resp.status_code == 200
+    assert resp.get_json()["status"] == "in_progress"
+
+def test_solve_unknown_game_returns_404(client):
+    resp = client.post("/api/game/nonexistent/solve", json={"word": "cat"})
+    assert resp.status_code == 404
+
+def test_solve_after_game_over_returns_400(client):
+    resp = client.post("/api/game")
+    game_id = resp.get_json()["game_id"]
+    games[game_id]["word"] = "cat"
+    games[game_id]["status"] = "won"
+    resp = client.post(f"/api/game/{game_id}/solve", json={"word": "cat"})
+    assert resp.status_code == 400
