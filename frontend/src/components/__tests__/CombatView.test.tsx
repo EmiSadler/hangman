@@ -471,4 +471,11 @@ describe('CombatView', () => {
     render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     expect(screen.getByRole('button', { name: /heal/i })).toBeDisabled()
   })
+
+  it('heal button blocks one keyboard key', async () => {
+    render(<CombatView run={lowHpRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    expect(document.querySelectorAll('.key--blocked').length).toBe(0)
+    await userEvent.click(screen.getByRole('button', { name: /heal/i }))
+    expect(document.querySelectorAll('.key--blocked').length).toBe(1)
+  })
 })

@@ -10,6 +10,7 @@
   --correct:      #4a7c59;
   --wrong:        #8b2e2e;
   --border:       #d4b896;
+  --heal:         #4caf50;
 }
 
 *, *::before, *::after {
@@ -672,17 +673,17 @@ button:disabled {
   display: block;
   margin: 0.4rem auto 0;
   padding: 0.35rem 1rem;
-  border: 1px solid #4caf50;
+  border: 1px solid var(--heal);
   border-radius: 4px;
   background: transparent;
-  color: #4caf50;
+  color: var(--heal);
   font-size: 0.85rem;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
 .combat-view .btn-heal:hover:not(:disabled) {
-  background: #4caf50;
+  background: var(--heal);
   color: #fff;
 }
 
