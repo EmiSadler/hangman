@@ -90,6 +90,7 @@ describe('App', () => {
     const game2 = { game_id: 'game-2', masked_word: '_ _ _ _ _', word: 'brave', category: 'general', first_letter: 'b', guessed_letters: [] }
 
     vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ session_id: 'test-session' }) })
       .mockResolvedValueOnce({ ok: true, json: async () => game1 })
       .mockResolvedValueOnce({ ok: true, json: async () => wonGuess })
       .mockResolvedValueOnce({ ok: true, json: async () => game2 }),
@@ -141,5 +142,32 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
     })
+  })
+
+  it('calls POST /api/session when starting a new run', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGameResponse,
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: 'A' }))
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/session')
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST' })
+  })
+
+  it('passes session_id to POST /api/game when session was created', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ session_id: 'run-abc' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGameResponse })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: 'A' }))
+    const gameCallBody = JSON.parse(fetchMock.mock.calls[1][1].body as string)
+    expect(gameCallBody.session_id).toBe('run-abc')
   })
 })

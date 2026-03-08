@@ -39,6 +39,17 @@ export default function App() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  async function createSession(): Promise<string | null> {
+    try {
+      const resp = await fetch('/api/session', { method: 'POST' })
+      if (!resp.ok) return null
+      const data = await resp.json()
+      return (data.session_id as string) ?? null
+    } catch {
+      return null
+    }
+  }
+
   async function fetchAndEnterCombat(
     currentRun: RunState,
     roomType: 'enemy' | 'boss',
@@ -48,6 +59,7 @@ export default function App() {
     try {
       const body: Record<string, unknown> = { room_type: roomType }
       if (hint) body.hint = true
+      if (currentRun.sessionId) body.session_id = currentRun.sessionId
       const resp = await fetch('/api/game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,9 +93,11 @@ export default function App() {
 
   async function handleStartRun(className: ClassName) {
     const newRun = buildRun(className)
-    saveRun(newRun)
-    setRun(newRun)
-    await fetchAndEnterCombat(newRun, 'enemy', false)
+    const sessionId = await createSession()
+    const runWithSession: RunState = { ...newRun, sessionId }
+    saveRun(runWithSession)
+    setRun(runWithSession)
+    await fetchAndEnterCombat(runWithSession, 'enemy', false)
   }
 
   async function handleCombatEnd(updatedRun: RunState) {
