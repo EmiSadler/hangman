@@ -665,7 +665,7 @@ button:disabled {
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--card-bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.5rem 0.75rem;
@@ -892,7 +892,7 @@ button:disabled {
   line-height: 1;
   border-radius: 8px;
   padding: 0.15rem 0.3rem;
-  background: var(--card-bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   transition: border-color 0.15s;
   user-select: none;
@@ -910,7 +910,7 @@ button:disabled {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  background: var(--card-bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.5rem 0.75rem;
