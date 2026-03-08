@@ -169,4 +169,56 @@ describe('App', () => {
     const gameCallBody = JSON.parse(fetchMock.mock.calls[1][1].body as string)
     expect(gameCallBody.session_id).toBe('run-abc')
   })
+
+  it('shows RestArea when resumed into a rest room', async () => {
+    const { buildRun } = await import('../../runState')
+    const run = { ...buildRun('berserker'), roomIndex: 4 }
+    localStorage.setItem('hangman_run', JSON.stringify(run))
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByText(/rest area/i)).toBeInTheDocument()
+    })
+  })
+
+  it('clicking Rest fully in RestArea advances to the next room', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGameResponse,
+    }))
+    const { buildRun } = await import('../../runState')
+    const run = { ...buildRun('berserker'), roomIndex: 4 }
+    localStorage.setItem('hangman_run', JSON.stringify(run))
+    render(<App />)
+    await waitFor(() => screen.getByText(/rest area/i))
+    await userEvent.click(screen.getByRole('button', { name: /rest fully/i }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
+    })
+  })
+
+  it('shows ShopArea when resumed into a shop room', async () => {
+    const { buildRun } = await import('../../runState')
+    const run = { ...buildRun('berserker'), roomIndex: 9 }
+    localStorage.setItem('hangman_run', JSON.stringify(run))
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByText(/^shop$/i)).toBeInTheDocument()
+    })
+  })
+
+  it('clicking Leave in ShopArea advances to the next room', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGameResponse,
+    }))
+    const { buildRun } = await import('../../runState')
+    const run = { ...buildRun('berserker'), roomIndex: 9 }
+    localStorage.setItem('hangman_run', JSON.stringify(run))
+    render(<App />)
+    await waitFor(() => screen.getByText(/^shop$/i))
+    await userEvent.click(screen.getByRole('button', { name: /leave/i }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
+    })
+  })
 })

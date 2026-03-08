@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { RunState, ArtifactId } from '../types'
+import type { RunState } from '../types'
 import { sampleArtifacts, type Artifact } from '../artifacts'
 import ArtifactShelf from './ArtifactShelf'
 

@@ -10,10 +10,11 @@ import FloorProgress from './components/FloorProgress'
 import CombatView from './components/CombatView'
 import RestArea from './components/RestArea'
 import TreasureArea from './components/TreasureArea'
+import ShopArea from './components/ShopArea'
 import RunResult from './components/RunResult'
 import './App.css'
 
-type AppPhase = 'idle' | 'combat' | 'rest' | 'treasure' | 'run_won' | 'run_lost'
+type AppPhase = 'idle' | 'combat' | 'rest' | 'treasure' | 'shop' | 'run_won' | 'run_lost'
 
 export default function App() {
   const [phase, setPhase] = useState<AppPhase>('idle')
@@ -35,6 +36,8 @@ export default function App() {
         setPhase('rest')
       } else if (room.type === 'treasure') {
         setPhase('treasure')
+      } else if (room.type === 'shop') {
+        setPhase('shop')
       }
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -170,17 +173,17 @@ export default function App() {
       setPhase('rest')
     } else if (room.type === 'treasure') {
       setPhase('treasure')
+    } else if (room.type === 'shop') {
+      setPhase('shop')
     }
   }
 
-  function handleRestHeal(updatedRun: RunState) {
-    saveRun(updatedRun)
-    setRun(updatedRun)
+  async function handleRestChoose(updatedRun: RunState) {
+    await advanceFromNonCombatRoom(updatedRun)
   }
 
-  async function handleRestLeave() {
-    if (!run) return
-    await advanceFromNonCombatRoom(run)
+  async function handleShopLeave(updatedRun: RunState) {
+    await advanceFromNonCombatRoom(updatedRun)
   }
 
   async function handleTreasureChoose(updatedRun: RunState) {
@@ -262,11 +265,15 @@ export default function App() {
       )}
 
       {phase === 'rest' && run && (
-        <RestArea run={run} onHeal={handleRestHeal} onLeave={handleRestLeave} />
+        <RestArea run={run} onLeave={handleRestChoose} />
       )}
 
       {phase === 'treasure' && run && (
         <TreasureArea run={run} onChoose={handleTreasureChoose} />
+      )}
+
+      {phase === 'shop' && run && (
+        <ShopArea run={run} onLeave={handleShopLeave} />
       )}
 
       {(phase === 'run_won' || phase === 'run_lost') && run && (
