@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { GameState, Room, RunState, ClassName, ArtifactId } from '../types'
 import {
   DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT,
@@ -141,6 +141,10 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   )
   const [blockedLetters, setBlockedLetters] = useState<string[]>([])
   const [guessedLetters, setGuessedLetters] = useState<string[]>(initialState.guessedLetters)
+  const enemyHpRef = useRef(maxEnemyHp)
+  const [currentGame, setCurrentGame] = useState<GameState>(initialState)
+  const [summoningHp, setSummoningHp] = useState<number | null>(null)
+  const [nextGame, setNextGame] = useState<GameState | null>(null)
 
   useEffect(() => {
     if (currentEnemyHp <= 0 && !combatDone) {
@@ -196,7 +200,9 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         dmg += 2
         setBloodDaggerReady(false)
       }
-      setCurrentEnemyHp(prev => Math.max(0, prev - dmg))
+      const newEnemyHp = Math.max(0, enemyHpRef.current - dmg)
+      enemyHpRef.current = newEnemyHp
+      setCurrentEnemyHp(newEnemyHp)
       setHiddenCount(prev => Math.max(0, prev - occurrences))
       if (run.className === 'rogue') setCombo(prev => prev + 1)
       if (run.className === 'vowel_mage' && isAbilityHit && VOWELS.has(letter)) {
@@ -223,8 +229,41 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     if (!wasAbilityMode) setCooldown(prev => Math.max(0, prev - 1))
   }
 
-  function handleWordSolved() {
-    finishCombat(true)
+  async function handleWordSolved() {
+    if (enemyHpRef.current > 0) {
+      const hp = enemyHpRef.current
+      setSummoningHp(hp)
+      try {
+        const res = await fetch('/api/game', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ room_type: room.type }),
+        })
+        const data = await res.json()
+        setNextGame({
+          gameId: data.game_id,
+          word: data.word,
+          maskedWord: data.masked_word,
+          category: data.category,
+          firstLetter: data.first_letter,
+          guessedLetters: data.guessed_letters ?? [],
+          status: 'in_progress',
+        })
+      } catch {
+        finishCombat(true)
+      }
+    } else {
+      finishCombat(true)
+    }
+  }
+
+  function handleSummonContinue() {
+    if (nextGame === null) return
+    setCurrentGame(nextGame)
+    setGuessedLetters([])
+    setHiddenCount(nextGame.maskedWord.split(' ').filter(c => c === '_').length)
+    setNextGame(null)
+    setSummoningHp(null)
   }
 
   function finishCombat(won: boolean, hpOverride?: number) {
@@ -336,22 +375,26 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         <div className="combat-view__enemy">
           <div className="combat-view__enemy-name">{enemyName}</div>
           <div className="combat-view__enemy-sprite-placeholder" aria-hidden="true" />
-          <div className="combat-view__enemy-hp-label">
-            Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
-          </div>
-          <div className="combat-view__enemy-hp-bar">
-            <div
-              className="combat-view__enemy-hp-fill"
-              style={{ width: `${Math.max(0, (currentEnemyHp / maxEnemyHp) * 100)}%` }}
-            />
-          </div>
+          {summoningHp === null && (
+            <>
+              <div className="combat-view__enemy-hp-label">
+                Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
+              </div>
+              <div className="combat-view__enemy-hp-bar">
+                <div
+                  className="combat-view__enemy-hp-fill"
+                  style={{ width: `${Math.max(0, (currentEnemyHp / maxEnemyHp) * 100)}%` }}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
       {run.className === 'archivist' && (
         <div className="combat-view__archivist-info">
-          <span>Category: {initialState.category}</span>
-          <span>First letter: {initialState.firstLetter.toUpperCase()}</span>
-          <span>{initialState.word.length} letters</span>
+          <span>Category: {currentGame.category}</span>
+          <span>First letter: {currentGame.firstLetter.toUpperCase()}</span>
+          <span>{currentGame.word.length} letters</span>
         </div>
       )}
       {(vowelCount !== null || crystalBallLetter !== null || showCategoryScroll) && (
@@ -363,20 +406,36 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
             <span>🔮 {crystalBallLetter.toUpperCase()} is in this word</span>
           )}
           {showCategoryScroll && (
-            <span>📜 Category: {initialState.category}</span>
+            <span>📜 Category: {currentGame.category}</span>
           )}
         </div>
       )}
-      <GameBoard
-        initialState={initialState}
-        onGuessResult={handleGuessResult}
-        onWordSolved={handleWordSolved}
-        onPlayAgain={handleContinue}
-        playAgainLabel={playAgainLabel}
-        combatOver={combatDone || enemyDead}
-        blockedLetters={blockedLetters}
-        onWrongSolve={handleWrongSolve}
-      />
+      {summoningHp !== null ? (
+        <div className="summoning-screen">
+          <p className="summoning-screen__message">
+            The enemy survives with {summoningHp} HP!
+          </p>
+          <p className="summoning-screen__sub">They summon another word...</p>
+          <button
+            className="btn-leave"
+            onClick={handleSummonContinue}
+            disabled={nextGame === null}
+          >
+            Continue
+          </button>
+        </div>
+      ) : (
+        <GameBoard
+          initialState={currentGame}
+          onGuessResult={handleGuessResult}
+          onWordSolved={handleWordSolved}
+          onPlayAgain={handleContinue}
+          playAgainLabel={playAgainLabel}
+          combatOver={combatDone || enemyDead}
+          blockedLetters={blockedLetters}
+          onWrongSolve={handleWrongSolve}
+        />
+      )}
     </div>
   )
 }

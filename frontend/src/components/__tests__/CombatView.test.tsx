@@ -74,7 +74,7 @@ describe('CombatView', () => {
 
   it('shows Continue button when word solved', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true, json: async () => mockGuessResponse({ masked_word: 'c a t', correct: true, guessed_letters: ['c','a','t'], status: 'won', occurrences: 1 }),
+      ok: true, json: async () => mockGuessResponse({ masked_word: 'c a t', correct: true, guessed_letters: ['c','a','t'], status: 'won', occurrences: 3 }),
     }))
     render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: 'T' }))
@@ -83,7 +83,7 @@ describe('CombatView', () => {
 
   it('calls onCombatEnd with updated run when Continue clicked after win', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true, json: async () => mockGuessResponse({ masked_word: 'c a t', correct: true, guessed_letters: ['c','a','t'], status: 'won', occurrences: 1 }),
+      ok: true, json: async () => mockGuessResponse({ masked_word: 'c a t', correct: true, guessed_letters: ['c','a','t'], status: 'won', occurrences: 3 }),
     }))
     const onCombatEnd = vi.fn()
     const run: RunState = { ...buildRun('berserker'), hp: 50, coins: 0 }
@@ -373,7 +373,7 @@ describe('CombatView', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true, json: async () => mockGuessResponse({
         masked_word: 'c a t', correct: true,
-        guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 1,
+        guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 3,
       }),
     }))
     const run = { ...buildRun('berserker'), hp: 40, artifacts: ['healing_salve'] as ArtifactId[] }
@@ -389,7 +389,7 @@ describe('CombatView', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true, json: async () => mockGuessResponse({
         masked_word: 'c a t', correct: true,
-        guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 1,
+        guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 3,
       }),
     }))
     const run = { ...buildRun('berserker'), hp: 49, maxHp: 50, artifacts: ['healing_salve'] as ArtifactId[] }
@@ -406,7 +406,7 @@ describe('CombatView', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true, json: async () => mockGuessResponse({
         masked_word: 'c a t', correct: true,
-        guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 1,
+        guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 3,
       }),
     }))
     const run = { ...buildRun('berserker'), coins: 0, artifacts: ['gold_tooth'] as ArtifactId[] }
@@ -525,5 +525,64 @@ describe('CombatView', () => {
     await userEvent.type(input, 'wrong')
     await userEvent.click(screen.getByRole('button', { name: /^solve$/i }))
     await waitFor(() => screen.getByRole('button', { name: /play again/i }))
+  })
+
+  it('shows summoning message with remaining HP when word solved but enemy alive', async () => {
+    // floor=3, word='cat' (3 letters) → enemy HP = 3*3*2 = 18
+    // Guess 't' (1 occ, 2 dmg → HP 18→16), backend returns status='won' → summoning
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockGuessResponse({
+          masked_word: 'c a t', correct: true,
+          guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 1,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          game_id: 'new-id', word: 'dog', masked_word: '_ _ _',
+          category: 'animals', first_letter: 'd', guessed_letters: [], status: 'in_progress',
+        }),
+      })
+    )
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={3} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'T' }))
+    await waitFor(() => {
+      expect(screen.getByText(/16/)).toBeInTheDocument()
+      expect(screen.getByText(/summon/i)).toBeInTheDocument()
+    })
+  })
+
+  it('Continue on summoning screen dismisses message and shows new word', async () => {
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockGuessResponse({
+          masked_word: 'c a t', correct: true,
+          guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 1,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          game_id: 'new-id', word: 'dog', masked_word: '_ _ _',
+          category: 'animals', first_letter: 'd', guessed_letters: [], status: 'in_progress',
+        }),
+      })
+    )
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={3} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'T' }))
+    // Wait for Continue button to be enabled (fetch complete)
+    const continueBtn = await waitFor(() => {
+      const btn = screen.getByRole('button', { name: /continue/i })
+      expect(btn).not.toBeDisabled()
+      return btn
+    })
+    await userEvent.click(continueBtn)
+    // Summoning message gone, back to game board
+    await waitFor(() => expect(screen.queryByText(/summon/i)).not.toBeInTheDocument())
+    // 'E' key available (keyboard reset with new word)
+    expect(screen.getByRole('button', { name: 'E' })).toBeInTheDocument()
   })
 })
