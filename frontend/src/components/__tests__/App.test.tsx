@@ -145,10 +145,9 @@ describe('App', () => {
   })
 
   it('calls POST /api/session when starting a new run', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => mockGameResponse,
-    })
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ session_id: 'test-session' }) })
+      .mockResolvedValue({ ok: true, json: async () => mockGameResponse })
     vi.stubGlobal('fetch', fetchMock)
     render(<App />)
     await userEvent.click(screen.getByText(/berserker/i))
