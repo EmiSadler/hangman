@@ -5,63 +5,64 @@ export interface Artifact {
   name: string
   description: string
   emoji: string
+  price: number
 }
 
 export const ARTIFACTS: Record<ArtifactId, Artifact> = {
   vowel_seeker: {
-    id: 'vowel_seeker', name: 'Vowel Seeker', emoji: '🔍',
+    id: 'vowel_seeker', name: 'Vowel Seeker', emoji: '🔍', price: 10,
     description: 'At combat start, shows how many vowels are in the word.',
   },
   crystal_ball: {
-    id: 'crystal_ball', name: 'Crystal Ball', emoji: '🔮',
+    id: 'crystal_ball', name: 'Crystal Ball', emoji: '🔮', price: 10,
     description: 'At combat start, reveals a random letter that is in the word.',
   },
   category_scroll: {
-    id: 'category_scroll', name: 'Category Scroll', emoji: '📜',
+    id: 'category_scroll', name: 'Category Scroll', emoji: '📜', price: 10,
     description: 'At combat start, shows the word\'s category.',
   },
   short_sword: {
-    id: 'short_sword', name: 'Short Sword', emoji: '⚔️',
+    id: 'short_sword', name: 'Short Sword', emoji: '⚔️', price: 15,
     description: 'Each correct guess deals +1 bonus damage.',
   },
   blood_dagger: {
-    id: 'blood_dagger', name: 'Blood Dagger', emoji: '🗡️',
+    id: 'blood_dagger', name: 'Blood Dagger', emoji: '🗡️', price: 15,
     description: 'After a wrong guess, your next correct hit deals +2 bonus damage.',
   },
   iron_shield: {
-    id: 'iron_shield', name: 'Iron Shield', emoji: '🛡️',
+    id: 'iron_shield', name: 'Iron Shield', emoji: '🛡️', price: 15,
     description: 'Start each combat with +2 shield.',
   },
   thick_skin: {
-    id: 'thick_skin', name: 'Thick Skin', emoji: '🪨',
+    id: 'thick_skin', name: 'Thick Skin', emoji: '🪨', price: 15,
     description: 'Take 1 less damage per wrong guess (minimum 1).',
   },
   chainmail: {
-    id: 'chainmail', name: 'Chainmail', emoji: '🧲',
+    id: 'chainmail', name: 'Chainmail', emoji: '🧲', price: 20,
     description: 'Permanently gain +5 max HP when picked up.',
   },
   healing_salve: {
-    id: 'healing_salve', name: 'Healing Salve', emoji: '🧪',
+    id: 'healing_salve', name: 'Healing Salve', emoji: '🧪', price: 15,
     description: 'Restore +3 HP after each combat victory.',
   },
   gold_tooth: {
-    id: 'gold_tooth', name: 'Gold Tooth', emoji: '🪙',
+    id: 'gold_tooth', name: 'Gold Tooth', emoji: '🪙', price: 15,
     description: 'Earn +5 bonus coins after each combat victory.',
   },
   battle_scar: {
-    id: 'battle_scar', name: 'Battle Scar', emoji: '🩹',
+    id: 'battle_scar', name: 'Battle Scar', emoji: '🩹', price: 20,
     description: 'Start each combat with 1 rage already built up. (Berserker synergy)',
   },
   shadow_cloak: {
-    id: 'shadow_cloak', name: 'Shadow Cloak', emoji: '🌑',
+    id: 'shadow_cloak', name: 'Shadow Cloak', emoji: '🌑', price: 20,
     description: 'After a wrong guess, combo drops to 1 instead of 0. (Rogue synergy)',
   },
   mana_crystal: {
-    id: 'mana_crystal', name: 'Mana Crystal', emoji: '💎',
+    id: 'mana_crystal', name: 'Mana Crystal', emoji: '💎', price: 20,
     description: 'Your ability cooldown is reduced by 1.',
   },
   ancient_codex: {
-    id: 'ancient_codex', name: 'Ancient Codex', emoji: '📖',
+    id: 'ancient_codex', name: 'Ancient Codex', emoji: '📖', price: 20,
     description: 'Cross Reference can be used twice per encounter. (Archivist synergy)',
   },
 }
