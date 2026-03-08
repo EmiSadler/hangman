@@ -42,6 +42,7 @@ export function buildRun(className: ClassName): RunState {
     className,
     shield: 0,
     artifacts: [],
+    sessionId: null,
   }
 }
 
@@ -59,6 +60,7 @@ export function loadRun(): RunState | null {
     if (!raw) return null
     const parsed = JSON.parse(raw) as RunState
     if (!parsed.artifacts) parsed.artifacts = []
+    if (parsed.sessionId === undefined) parsed.sessionId = null
     return parsed
   } catch {
     return null

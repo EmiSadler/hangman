@@ -71,6 +71,10 @@ describe('buildRun', () => {
     const run = buildRun('berserker')
     expect(run.artifacts).toEqual([])
   })
+  it('initialises sessionId to null', () => {
+    const run = buildRun('berserker')
+    expect(run.sessionId).toBeNull()
+  })
 })
 
 describe('enemyHp', () => {
@@ -128,6 +132,14 @@ describe('localStorage helpers', () => {
   it('loadRunScore returns zeros on invalid JSON', () => {
     localStorage.setItem('hangman_score', 'bad')
     expect(loadRunScore()).toEqual({ runsCleared: 0, runsFailed: 0, bestRooms: 0 })
+  })
+  it('loadRun sets sessionId to null when missing from saved data', () => {
+    const run = buildRun('berserker')
+    const legacy = { ...run } as Record<string, unknown>
+    delete legacy.sessionId
+    localStorage.setItem('hangman_run', JSON.stringify(legacy))
+    const loaded = loadRun()
+    expect(loaded?.sessionId).toBeNull()
   })
 })
 

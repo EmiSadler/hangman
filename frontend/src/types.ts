@@ -39,6 +39,7 @@ export interface RunState {
   className: ClassName
   shield: number
   artifacts: ArtifactId[]
+  sessionId: string | null
 }
 
 export interface RunScore {
