@@ -928,3 +928,83 @@ button:disabled {
   color: var(--text-muted, #aaa);
   padding: 0.25rem 0 0.5rem;
 }
+
+/* ── Shop ── */
+.shop-area {
+  max-width: 480px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.shop-area__coins {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+
+.shop-area__stock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.shop-area__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.shop-area__item-info {
+  font-size: 0.85rem;
+  flex: 1;
+}
+
+.btn-buy {
+  padding: 0.35rem 0.9rem;
+  background: var(--surface);
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-buy:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-buy:disabled {
+  opacity: 0.4;
+  border-color: var(--border);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.btn-leave {
+  background: transparent;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.btn-leave:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
