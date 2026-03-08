@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import ShopArea from '../ShopArea'
 import { buildRun } from '../../runState'
-import type { RunState } from '../../types'
+import type { RunState, ArtifactId } from '../../types'
 
 function makeRun(overrides: Partial<RunState> = {}): RunState {
   return { ...buildRun('berserker'), ...overrides }
@@ -38,6 +38,17 @@ describe('ShopArea', () => {
     render(<ShopArea run={run} onLeave={onLeave} />)
     await userEvent.click(screen.getByRole('button', { name: /leave/i }))
     expect(onLeave).toHaveBeenCalledWith(run)
+  })
+
+  it('renders available artifacts when pool has fewer than 4', () => {
+    // Own 12 of 14 artifacts — only 2 remain in pool
+    const nearlyFull: ArtifactId[] = [
+      'vowel_seeker', 'crystal_ball', 'category_scroll',
+      'short_sword', 'blood_dagger', 'iron_shield', 'thick_skin',
+      'chainmail', 'healing_salve', 'gold_tooth', 'battle_scar', 'shadow_cloak',
+    ]
+    render(<ShopArea run={makeRun({ coins: 99, artifacts: nearlyFull })} onLeave={vi.fn()} />)
+    expect(screen.getAllByRole('button', { name: /buy/i }).length).toBe(2)
   })
 
   it('buying an artifact deducts its price and adds it to artifacts', async () => {

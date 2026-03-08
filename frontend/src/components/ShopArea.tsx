@@ -15,7 +15,7 @@ export default function ShopArea({ run, onLeave }: Props) {
     let updated: RunState = {
       ...run,
       coins: run.coins - art.price,
-      artifacts: [...run.artifacts, art.id as ArtifactId],
+      artifacts: [...run.artifacts, art.id],
     }
     if (art.id === 'chainmail') {
       updated = { ...updated, maxHp: run.maxHp + 5, hp: run.hp + 5 }
@@ -25,7 +25,7 @@ export default function ShopArea({ run, onLeave }: Props) {
 
   return (
     <div className="shop-area">
-      <h2>Shop 🛒</h2>
+      <h2>Shop</h2>
       <p className="shop-area__coins">Coins: {run.coins}</p>
       <div className="shop-area__stock">
         {stock.map(art => (
