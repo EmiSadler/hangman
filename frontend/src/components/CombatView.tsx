@@ -237,9 +237,16 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         const res = await fetch('/api/game', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ room_type: room.type }),
+          body: JSON.stringify({
+            room_type: room.type,
+            ...(run.sessionId ? { session_id: run.sessionId } : {}),
+          }),
         })
         const data = await res.json()
+        if (!res.ok) {
+          finishCombat(true)
+          return
+        }
         setNextGame({
           gameId: data.game_id,
           word: data.word,
