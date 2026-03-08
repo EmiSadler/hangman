@@ -6,8 +6,8 @@ import { buildRooms } from '../../runState'
 describe('FloorProgress', () => {
   it('renders 11 room cells', () => {
     const rooms = buildRooms(1)
-    render(<FloorProgress rooms={rooms} currentIndex={0} floor={1} />)
-    expect(screen.getAllByText(/^[ERTB]$/).length).toBe(11)
+    const { container } = render(<FloorProgress rooms={rooms} currentIndex={0} floor={1} />)
+    expect(container.querySelectorAll('.floor-progress__room').length).toBe(11)
   })
 
   it('has accessible label with floor number', () => {
@@ -34,19 +34,19 @@ describe('FloorProgress', () => {
     expect(cells[2].classList.contains('floor-progress__room--completed')).toBe(false)
   })
 
-  it('boss room shows "B"', () => {
+  it('boss room shows ☠️', () => {
     const rooms = buildRooms(1)  // index 10 is boss
     render(<FloorProgress rooms={rooms} currentIndex={0} floor={1} />)
-    expect(screen.getByText('B')).toBeInTheDocument()
+    expect(screen.getByText('☠️')).toBeInTheDocument()
   })
 
-  it('rest room shows "R"', () => {
+  it('rest room shows 😴', () => {
     render(<FloorProgress rooms={buildRooms(1)} currentIndex={0} floor={1} />)
-    expect(screen.getByText('R')).toBeInTheDocument()
+    expect(screen.getByText('😴')).toBeInTheDocument()
   })
 
-  it('treasure room shows "T"', () => {
+  it('treasure room shows 👑', () => {
     render(<FloorProgress rooms={buildRooms(1)} currentIndex={0} floor={1} />)
-    expect(screen.getByText('T')).toBeInTheDocument()
+    expect(screen.getByText('👑')).toBeInTheDocument()
   })
 })

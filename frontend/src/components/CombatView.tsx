@@ -30,6 +30,13 @@ const ABILITY_NAMES: Record<ClassName, string> = {
   rogue: 'Backstab',
 }
 
+const ABILITY_DESCRIPTIONS: Record<ClassName, string> = {
+  vowel_mage: 'Resonance (3-turn cd): choose a vowel — if in word, reveal all + gain 1 shield per instance; if not, take only 1 damage',
+  archivist: 'Cross Reference (once/encounter): reveal 1 random letter OR eliminate 3 non-word letters',
+  berserker: 'Bloodletter (4-turn cd): guess blindly — correct = double damage, wrong = double damage taken',
+  rogue: 'Backstab (3-turn cd): after 2+ correct in a row — reveal 1 hidden letter + deal double combo damage',
+}
+
 const ABILITY_COOLDOWNS: Record<ClassName, number> = {
   vowel_mage: 3,
   archivist: 0, // once per encounter, tracked separately
@@ -309,6 +316,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
               className="btn-ability"
               onClick={handleAbility}
               disabled={abilityDisabled}
+              title={ABILITY_DESCRIPTIONS[run.className]}
             >
               {abilityLabel}
             </button>

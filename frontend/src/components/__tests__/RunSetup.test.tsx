@@ -8,7 +8,7 @@ const zeroScore = { runsCleared: 0, runsFailed: 0, bestRooms: 0 }
 describe('RunSetup', () => {
   it('renders title', () => {
     render(<RunSetup onStart={vi.fn()} score={zeroScore} onReset={vi.fn()} />)
-    expect(screen.getByRole('heading', { name: /dungeon hangman/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /the hangman's dungeon/i })).toBeInTheDocument()
   })
 
   it('renders all 4 class cards', () => {

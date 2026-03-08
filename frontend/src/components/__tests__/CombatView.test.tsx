@@ -158,6 +158,12 @@ describe('CombatView', () => {
     expect(screen.getByRole('button', { name: /bloodletter/i })).toBeInTheDocument()
   })
 
+  it('ability button has tooltip describing the ability', () => {
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    const btn = screen.getByRole('button', { name: /bloodletter/i })
+    expect(btn.getAttribute('title')).toBeTruthy()
+  })
+
   it('Archivist deals bonus damage on correct guess when 5+ letters hidden', async () => {
     // 6-letter word = 6 hidden letters > 5 threshold → Archivist gets +1 dmg/occ
     // floor=1, word='castle' (6 letters) → enemy HP = 6×1×2 = 12

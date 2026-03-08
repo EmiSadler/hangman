@@ -7,10 +7,10 @@ interface Props {
 }
 
 const ROOM_LABEL: Record<string, string> = {
-  enemy: 'E',
-  boss: 'B',
-  rest: 'R',
-  treasure: 'T',
+  enemy: '👺',
+  boss: '☠️',
+  rest: '😴',
+  treasure: '👑',
 }
 
 export default function FloorProgress({ rooms, currentIndex, floor }: Props) {
