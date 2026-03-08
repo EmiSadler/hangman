@@ -316,7 +316,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
               className="btn-ability"
               onClick={handleAbility}
               disabled={abilityDisabled}
-              title={ABILITY_DESCRIPTIONS[run.className]}
+              data-tooltip={ABILITY_DESCRIPTIONS[run.className]}
             >
               {abilityLabel}
             </button>

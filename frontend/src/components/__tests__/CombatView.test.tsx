@@ -158,10 +158,10 @@ describe('CombatView', () => {
     expect(screen.getByRole('button', { name: /bloodletter/i })).toBeInTheDocument()
   })
 
-  it('ability button has tooltip describing the ability', () => {
+  it('ability button has data-tooltip describing the ability', () => {
     render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     const btn = screen.getByRole('button', { name: /bloodletter/i })
-    expect(btn.getAttribute('title')).toBeTruthy()
+    expect(btn.getAttribute('data-tooltip')).toBeTruthy()
   })
 
   it('Archivist deals bonus damage on correct guess when 5+ letters hidden', async () => {
