@@ -403,35 +403,19 @@ button:disabled {
   font-size: 1.1rem;
 }
 
-.btn-heal {
-  background: var(--correct);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.6rem 1.5rem;
-  font-size: 1rem;
-}
-
-.btn-heal:hover:not(:disabled) {
-  opacity: 0.85;
-}
-
-.btn-heal:disabled {
-  opacity: 0.4;
-}
-
-.btn-leave {
-  background: transparent;
-  border: 2px solid var(--border);
-  border-radius: 6px;
-  padding: 0.5rem 1.5rem;
-  font-size: 1rem;
-  color: var(--text-muted);
-}
-
-.btn-leave:hover {
-  border-color: var(--accent);
+.btn-rest-option {
+  width: 280px;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
   color: var(--accent);
+}
+
+.btn-rest-option:hover {
+  background: var(--accent);
+  color: #fff;
 }
 
 /* ── TreasureArea ───────────────────────────────────────── */
