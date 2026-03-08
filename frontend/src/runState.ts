@@ -1,6 +1,13 @@
 import type { Room, RunState, RunScore, RoomType, ClassName } from './types'
 
 export const MAX_HP = 50
+
+export const CLASS_MAX_HP: Record<import('./types').ClassName, number> = {
+  vowel_mage: 50,
+  berserker: 50,
+  archivist: 45,
+  rogue: 40,
+}
 export const DAMAGE_PER_WRONG = 2
 export const BASE_DAMAGE_PER_HIT = 2
 export const COINS_PER_ENEMY = 5
@@ -30,9 +37,10 @@ export function buildRooms(floor: number): Room[] {
 }
 
 export function buildRun(className: ClassName): RunState {
+  const maxHp = CLASS_MAX_HP[className]
   return {
-    hp: MAX_HP,
-    maxHp: MAX_HP,
+    hp: maxHp,
+    maxHp,
     coins: 0,
     floor: 1,
     roomIndex: 0,

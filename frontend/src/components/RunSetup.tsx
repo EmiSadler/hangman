@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { RunScore, ClassName } from '../types'
+import { CLASS_MAX_HP } from '../runState'
 
 interface Props {
   onStart: (className: ClassName) => void
@@ -11,7 +12,6 @@ const CLASSES: {
   id: ClassName
   emoji: string
   name: string
-  maxHp: number
   passive: string
   active: string
   con: string
@@ -20,7 +20,6 @@ const CLASSES: {
     id: 'vowel_mage',
     emoji: '🧙',
     name: 'Vowel Mage',
-    maxHp: 50,
     passive: 'Vowels deal +1 damage per occurrence',
     active: 'Resonance (3-turn cd): choose a vowel — if in word, reveal all + gain 1 shield per instance; if not, take only 1 damage',
     con: 'Wrong consonant guesses deal +1 damage to you',
@@ -29,7 +28,6 @@ const CLASSES: {
     id: 'archivist',
     emoji: '📚',
     name: 'The Archivist',
-    maxHp: 45,
     passive: 'See word category, first letter, and length; +1 damage per occurrence if 5+ letters still hidden',
     active: 'Cross Reference (once/encounter): reveal 1 random letter OR eliminate 3 non-word letters',
     con: 'Cannot deal bonus burst damage; -5 max HP',
@@ -38,7 +36,6 @@ const CLASSES: {
     id: 'berserker',
     emoji: '🪓',
     name: 'Berserker',
-    maxHp: 50,
     passive: 'Each wrong guess: +1 permanent damage this encounter (Rage). Correct guesses deal base + Rage.',
     active: 'Bloodletter (4-turn cd): guess blindly — correct = double damage, wrong = double damage taken',
     con: 'Cannot use reveal abilities or gain shield',
@@ -47,7 +44,6 @@ const CLASSES: {
     id: 'rogue',
     emoji: '🗡️',
     name: 'Rogue',
-    maxHp: 40,
     passive: 'Combo: each consecutive correct guess adds +1 stacking damage. Resets on wrong guess.',
     active: 'Backstab (3-turn cd): after 2+ correct in a row — reveal 1 hidden letter + deal double combo damage',
     con: 'Wrong guesses deal +1 damage to you; lowest max HP (40)',
@@ -77,7 +73,7 @@ export default function RunSetup({ onStart, score, onReset }: Props) {
             <div className="class-card__header">
               <span className="class-card__emoji">{cls.emoji}</span>
               <span className="class-card__name">{cls.name}</span>
-              <span className="class-card__hp">{cls.maxHp} HP</span>
+              <span className="class-card__hp">{CLASS_MAX_HP[cls.id]} HP</span>
             </div>
             <p className="class-card__passive">{cls.passive}</p>
             <p className="class-card__active">{cls.active}</p>

@@ -160,4 +160,21 @@ describe('buildRun with className', () => {
       expect(() => buildRun(cls)).not.toThrow()
     }
   })
+
+  it('archivist starts with 45 HP', () => {
+    const run = buildRun('archivist')
+    expect(run.hp).toBe(45)
+    expect(run.maxHp).toBe(45)
+  })
+
+  it('rogue starts with 40 HP', () => {
+    const run = buildRun('rogue')
+    expect(run.hp).toBe(40)
+    expect(run.maxHp).toBe(40)
+  })
+
+  it('vowel_mage and berserker start with 50 HP', () => {
+    expect(buildRun('vowel_mage').maxHp).toBe(50)
+    expect(buildRun('berserker').maxHp).toBe(50)
+  })
 })
