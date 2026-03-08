@@ -10,6 +10,7 @@ games: dict[str, dict] = {}
 # NOTE: games are never evicted from this dict (acceptable for a prototype, would need TTL or cleanup for production use).
 
 sessions: dict[str, dict] = {}
+# NOTE: sessions are never evicted (acceptable for a prototype; add TTL/cleanup for production)
 
 
 @app.route("/")
@@ -34,6 +35,7 @@ def create_game():
         if session_id and session_id in sessions:
             game = new_game_from_session(sessions[session_id], room_type=room_type, hint=hint)
         else:
+            # Unknown/missing session_id: fall back to random word selection (e.g. after server restart)
             game = new_game(room_type=room_type, hint=hint)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

@@ -204,40 +204,40 @@ def test_solve_after_game_over_returns_400(client):
 # --- POST /api/session ---
 
 def test_create_session_returns_session_id(client):
-    resp = client.post('/api/session')
+    resp = client.post("/api/session")
     assert resp.status_code == 200
     data = resp.get_json()
-    assert 'session_id' in data
-    assert isinstance(data['session_id'], str)
-    assert len(data['session_id']) > 0
+    assert "session_id" in data
+    assert isinstance(data["session_id"], str)
+    assert len(data["session_id"]) > 0
 
 # --- POST /api/game with session_id ---
 
 def test_game_with_valid_session_id_returns_word(client):
-    session_resp = client.post('/api/session')
-    session_id = session_resp.get_json()['session_id']
-    resp = client.post('/api/game', json={'room_type': 'enemy', 'session_id': session_id})
+    session_resp = client.post("/api/session")
+    session_id = session_resp.get_json()["session_id"]
+    resp = client.post("/api/game", json={"room_type": "enemy", "session_id": session_id})
     assert resp.status_code == 200
-    assert 'word' in resp.get_json()
+    assert "word" in resp.get_json()
 
 def test_game_without_session_id_still_works(client):
-    resp = client.post('/api/game', json={'room_type': 'enemy'})
+    resp = client.post("/api/game", json={"room_type": "enemy"})
     assert resp.status_code == 200
-    assert 'word' in resp.get_json()
+    assert "word" in resp.get_json()
 
 def test_game_with_unknown_session_id_falls_back_to_random(client):
-    resp = client.post('/api/game', json={'room_type': 'enemy', 'session_id': 'does-not-exist'})
+    resp = client.post("/api/game", json={"room_type": "enemy", "session_id": "does-not-exist"})
     assert resp.status_code == 200
-    assert 'word' in resp.get_json()
+    assert "word" in resp.get_json()
 
 def test_session_words_do_not_repeat_within_pool(client):
     from app import sessions
-    session_resp = client.post('/api/session')
-    session_id = session_resp.get_json()['session_id']
+    session_resp = client.post("/api/session")
+    session_id = session_resp.get_json()["session_id"]
     # Shrink the pool to 3 words so we can exhaust it quickly
-    sessions[session_id]['enemy'] = [('cat', 'animals'), ('dog', 'animals'), ('fox', 'animals')]
+    sessions[session_id]["enemy"] = [("cat", "animals"), ("dog", "animals"), ("fox", "animals")]
     seen = []
     for _ in range(3):
-        resp = client.post('/api/game', json={'room_type': 'enemy', 'session_id': session_id})
-        seen.append(resp.get_json()['word'])
+        resp = client.post("/api/game", json={"room_type": "enemy", "session_id": session_id})
+        seen.append(resp.get_json()["word"])
     assert len(set(seen)) == 3  # all unique
