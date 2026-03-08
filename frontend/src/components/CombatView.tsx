@@ -154,7 +154,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
 
   // --- Artifact info-display values (computed once from props) ---
   const vowelCount = run.artifacts.includes('vowel_seeker' as ArtifactId)
-    ? [...initialState.word].filter(l => VOWELS.has(l)).length
+    ? [...currentGame.word].filter(l => VOWELS.has(l)).length
     : null
 
   const showCategoryScroll =
@@ -375,19 +375,15 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         <div className="combat-view__enemy">
           <div className="combat-view__enemy-name">{enemyName}</div>
           <div className="combat-view__enemy-sprite-placeholder" aria-hidden="true" />
-          {summoningHp === null && (
-            <>
-              <div className="combat-view__enemy-hp-label">
-                Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
-              </div>
-              <div className="combat-view__enemy-hp-bar">
-                <div
-                  className="combat-view__enemy-hp-fill"
-                  style={{ width: `${Math.max(0, (currentEnemyHp / maxEnemyHp) * 100)}%` }}
-                />
-              </div>
-            </>
-          )}
+          <div className="combat-view__enemy-hp-label">
+            Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
+          </div>
+          <div className="combat-view__enemy-hp-bar">
+            <div
+              className="combat-view__enemy-hp-fill"
+              style={{ width: `${Math.max(0, (currentEnemyHp / maxEnemyHp) * 100)}%` }}
+            />
+          </div>
         </div>
       </div>
       {run.className === 'archivist' && (
@@ -426,6 +422,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         </div>
       ) : (
         <GameBoard
+          key={currentGame.gameId}
           initialState={currentGame}
           onGuessResult={handleGuessResult}
           onWordSolved={handleWordSolved}

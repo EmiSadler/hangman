@@ -549,7 +549,7 @@ describe('CombatView', () => {
     render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={3} onCombatEnd={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: 'T' }))
     await waitFor(() => {
-      expect(screen.getByText(/16/)).toBeInTheDocument()
+      expect(screen.getAllByText(/16/).length).toBeGreaterThan(0)
       expect(screen.getByText(/summon/i)).toBeInTheDocument()
     })
   })
