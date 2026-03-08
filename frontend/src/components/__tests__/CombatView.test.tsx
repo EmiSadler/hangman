@@ -485,6 +485,36 @@ describe('CombatView', () => {
     expect(document.querySelectorAll('.key--blocked').length).toBe(1)
   })
 
+  it('bonusDamage adds flat damage per correct guess', async () => {
+    // word='catch' (5 letters), floor=1 → maxEnemyHp = 5*1*2 = 10
+    // berserker BASE_DAMAGE=2, no rage, bonusDamage=2 → dmg per occ = 2
+    // 'c' appears 2 times → base total = 2*2 = 4, +bonusDamage 2 = 6
+    // Enemy HP: 10 - 6 = 4
+    const game: GameState = { ...mockGame, word: 'catch', maskedWord: '_ _ _ _ _', firstLetter: 'c' }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGuessResponse({
+        masked_word: 'c _ _ c _',
+        correct: true,
+        guessed_letters: ['c'],
+        status: 'in_progress',
+        occurrences: 2,
+      }),
+    }))
+    render(
+      <CombatView
+        run={{ ...buildRun('berserker'), bonusDamage: 2 }}
+        room={enemyRoom()}
+        initialState={game}
+        floor={1}
+        onCombatEnd={vi.fn()}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'C' }))
+    // Enemy HP should be 4/10 (took 6 damage: 2 per occ * 2 occ + 2 bonusDamage)
+    await waitFor(() => expect(screen.getByText(/4 \/ 10/)).toBeInTheDocument())
+  })
+
   it('wrong solve attempt when HP is low triggers game over', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true, json: async () => ({ status: 'in_progress' }),

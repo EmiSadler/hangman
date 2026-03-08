@@ -69,6 +69,7 @@ function calcDamageDealt(
   hiddenCount: number,
   isAbilityHit: boolean,
   artifacts: ArtifactId[],
+  bonusDamage: number,
 ): number {
   let dmgPerOcc = BASE_DAMAGE_PER_HIT
 
@@ -92,6 +93,7 @@ function calcDamageDealt(
     total *= 2
   }
   if (artifacts.includes('short_sword')) total += 1
+  total += bonusDamage
   return total
 }
 
@@ -188,7 +190,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       const currentCombo = combo
       let dmg = calcDamageDealt(
         letter, occurrences, run.className, rage, currentCombo,
-        currentHidden, isAbilityHit, run.artifacts,
+        currentHidden, isAbilityHit, run.artifacts, run.bonusDamage,
       )
       if (bloodDaggerReady && run.artifacts.includes('blood_dagger')) {
         dmg += 2
