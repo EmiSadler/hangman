@@ -21,11 +21,11 @@ export const SCORE_KEY = 'hangman_score'
 
 const LAYOUT_A: RoomType[] = [
   'enemy', 'enemy', 'enemy', 'enemy', 'rest',
-  'enemy', 'treasure', 'enemy', 'enemy', 'enemy', 'boss',
+  'enemy', 'treasure', 'enemy', 'enemy', 'shop', 'enemy', 'boss',
 ]
 const LAYOUT_B: RoomType[] = [
   'enemy', 'enemy', 'enemy', 'enemy', 'treasure',
-  'enemy', 'rest', 'enemy', 'enemy', 'enemy', 'boss',
+  'enemy', 'rest', 'enemy', 'enemy', 'shop', 'enemy', 'boss',
 ]
 
 export function getFloorLayout(floor: number): RoomType[] {
@@ -51,6 +51,7 @@ export function buildRun(className: ClassName): RunState {
     shield: 0,
     artifacts: [],
     sessionId: null,
+    bonusDamage: 0,
   }
 }
 
@@ -59,7 +60,7 @@ export function enemyHp(wordLength: number, floor: number): number {
 }
 
 export function computeRoomsCleared(run: RunState): number {
-  return (run.floor - 1) * 11 + run.rooms.filter(r => r.completed).length
+  return (run.floor - 1) * 12 + run.rooms.filter(r => r.completed).length
 }
 
 export function loadRun(): RunState | null {
@@ -69,6 +70,7 @@ export function loadRun(): RunState | null {
     const parsed = JSON.parse(raw) as RunState
     if (!parsed.artifacts) parsed.artifacts = []
     if (parsed.sessionId === undefined) parsed.sessionId = null
+    if (parsed.bonusDamage === undefined) parsed.bonusDamage = 0
     return parsed
   } catch {
     return null

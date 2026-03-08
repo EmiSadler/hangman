@@ -123,7 +123,7 @@ export default function App() {
       return
     }
 
-    if (roomIndex === 10) {
+    if (roomIndex === 11) {
       if (updatedRun.floor === 3) {
         const finalRun: RunState = { ...updatedRun, rooms: updatedRooms, status: 'won' }
         clearRun()

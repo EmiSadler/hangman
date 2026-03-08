@@ -19,7 +19,7 @@ export interface GameState {
   firstLetter: string
 }
 
-export type RoomType = 'enemy' | 'boss' | 'rest' | 'treasure'
+export type RoomType = 'enemy' | 'boss' | 'rest' | 'treasure' | 'shop'
 
 export interface Room {
   type: RoomType
@@ -32,7 +32,7 @@ export interface RunState {
   maxHp: number
   coins: number
   floor: number        // 1–3
-  roomIndex: number    // 0–10
+  roomIndex: number    // 0–11
   rooms: Room[]
   status: 'in_progress' | 'won' | 'lost'
   pendingReveal: boolean
@@ -40,6 +40,7 @@ export interface RunState {
   shield: number
   artifacts: ArtifactId[]
   sessionId: string | null
+  bonusDamage: number
 }
 
 export interface RunScore {

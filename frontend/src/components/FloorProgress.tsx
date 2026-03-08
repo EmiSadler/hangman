@@ -11,6 +11,7 @@ const ROOM_LABEL: Record<string, string> = {
   boss: '☠️',
   rest: '😴',
   treasure: '👑',
+  shop: '🛒',
 }
 
 export default function FloorProgress({ rooms, currentIndex, floor }: Props) {

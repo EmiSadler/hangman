@@ -4,10 +4,10 @@ import FloorProgress from '../FloorProgress'
 import { buildRooms } from '../../runState'
 
 describe('FloorProgress', () => {
-  it('renders 11 room cells', () => {
+  it('renders 12 room cells', () => {
     const rooms = buildRooms(1)
     const { container } = render(<FloorProgress rooms={rooms} currentIndex={0} floor={1} />)
-    expect(container.querySelectorAll('.floor-progress__room').length).toBe(11)
+    expect(container.querySelectorAll('.floor-progress__room').length).toBe(12)
   })
 
   it('has accessible label with floor number', () => {
@@ -35,7 +35,7 @@ describe('FloorProgress', () => {
   })
 
   it('boss room shows ☠️', () => {
-    const rooms = buildRooms(1)  // index 10 is boss
+    const rooms = buildRooms(1)  // index 11 is boss
     render(<FloorProgress rooms={rooms} currentIndex={0} floor={1} />)
     expect(screen.getByText('☠️')).toBeInTheDocument()
   })
@@ -48,5 +48,10 @@ describe('FloorProgress', () => {
   it('treasure room shows 👑', () => {
     render(<FloorProgress rooms={buildRooms(1)} currentIndex={0} floor={1} />)
     expect(screen.getByText('👑')).toBeInTheDocument()
+  })
+
+  it('shop room shows 🛒', () => {
+    render(<FloorProgress rooms={buildRooms(1)} currentIndex={0} floor={1} />)
+    expect(screen.getByText('🛒')).toBeInTheDocument()
   })
 })

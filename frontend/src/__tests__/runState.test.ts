@@ -19,32 +19,34 @@ describe('constants', () => {
 })
 
 describe('getFloorLayout', () => {
-  it('floor 1 has rest at index 4, treasure at index 6, boss at index 10', () => {
+  it('floor 1 has rest at index 4, treasure at index 6, shop at index 9, boss at index 11', () => {
     const layout = getFloorLayout(1)
     expect(layout[4]).toBe('rest')
     expect(layout[6]).toBe('treasure')
-    expect(layout[10]).toBe('boss')
+    expect(layout[9]).toBe('shop')
+    expect(layout[11]).toBe('boss')
   })
-  it('floor 2 has treasure at index 4, rest at index 6, boss at index 10', () => {
+  it('floor 2 has treasure at index 4, rest at index 6, shop at index 9, boss at index 11', () => {
     const layout = getFloorLayout(2)
     expect(layout[4]).toBe('treasure')
     expect(layout[6]).toBe('rest')
-    expect(layout[10]).toBe('boss')
+    expect(layout[9]).toBe('shop')
+    expect(layout[11]).toBe('boss')
   })
   it('floor 3 layout matches floor 1', () => {
     expect(getFloorLayout(3)).toEqual(getFloorLayout(1))
   })
-  it('all layouts have exactly 11 rooms', () => {
-    expect(getFloorLayout(1).length).toBe(11)
-    expect(getFloorLayout(2).length).toBe(11)
-    expect(getFloorLayout(3).length).toBe(11)
+  it('all layouts have exactly 12 rooms', () => {
+    expect(getFloorLayout(1).length).toBe(12)
+    expect(getFloorLayout(2).length).toBe(12)
+    expect(getFloorLayout(3).length).toBe(12)
   })
 })
 
 describe('buildRooms', () => {
-  it('creates 11 rooms, all incomplete with null gameId', () => {
+  it('creates 12 rooms, all incomplete with null gameId', () => {
     const rooms = buildRooms(1)
-    expect(rooms.length).toBe(11)
+    expect(rooms.length).toBe(12)
     expect(rooms.every(r => !r.completed)).toBe(true)
     expect(rooms.every(r => r.gameId === null)).toBe(true)
   })
@@ -65,7 +67,7 @@ describe('buildRun', () => {
     expect(run.roomIndex).toBe(0)
     expect(run.status).toBe('in_progress')
     expect(run.pendingReveal).toBe(false)
-    expect(run.rooms.length).toBe(11)
+    expect(run.rooms.length).toBe(12)
   })
   it('starts with an empty artifacts array', () => {
     const run = buildRun('berserker')
@@ -74,6 +76,10 @@ describe('buildRun', () => {
   it('initialises sessionId to null', () => {
     const run = buildRun('berserker')
     expect(run.sessionId).toBeNull()
+  })
+  it('initialises bonusDamage to 0', () => {
+    const run = buildRun('berserker')
+    expect(run.bonusDamage).toBe(0)
   })
 })
 
@@ -96,7 +102,7 @@ describe('computeRoomsCleared', () => {
     const run = buildRun('berserker')
     run.floor = 2
     run.rooms[0] = { ...run.rooms[0], completed: true }
-    expect(computeRoomsCleared(run)).toBe(12) // 11 from floor 1 + 1 from floor 2
+    expect(computeRoomsCleared(run)).toBe(13) // 12 from floor 1 + 1 from floor 2
   })
 })
 
@@ -140,6 +146,14 @@ describe('localStorage helpers', () => {
     localStorage.setItem('hangman_run', JSON.stringify(legacy))
     const loaded = loadRun()
     expect(loaded?.sessionId).toBeNull()
+  })
+  it('loadRun sets bonusDamage to 0 when missing from saved data', () => {
+    const run = buildRun('berserker')
+    const legacy = { ...run } as Record<string, unknown>
+    delete legacy.bonusDamage
+    localStorage.setItem('hangman_run', JSON.stringify(legacy))
+    const loaded = loadRun()
+    expect(loaded?.bonusDamage).toBe(0)
   })
 })
 

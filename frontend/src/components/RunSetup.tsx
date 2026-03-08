@@ -99,7 +99,7 @@ export default function RunSetup({ onStart, score, onReset }: Props) {
 
       {showHelp && (
         <div className="how-to-play">
-          <p><strong>Run structure:</strong> 3 floors, 11 rooms each</p>
+          <p><strong>Run structure:</strong> 3 floors, 12 rooms each</p>
           <p><strong>Room types:</strong> enemy, boss, rest area, treasure</p>
           <p><strong>Combat:</strong> correct guesses damage the enemy; wrong guesses damage you</p>
           <p><strong>Win:</strong> reduce enemy HP to 0 or solve the word</p>
