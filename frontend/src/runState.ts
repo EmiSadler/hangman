@@ -12,7 +12,6 @@ export const DAMAGE_PER_WRONG = 2
 export const BASE_DAMAGE_PER_HIT = 2
 export const COINS_PER_ENEMY = 5
 export const COINS_PER_BOSS = 20
-export const HEAL_COST = 10
 export const HEAL_AMOUNT = 5
 export const WRONG_SOLVE_PENALTY = 5
 

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
   getFloorLayout, buildRooms, buildRun, loadRun, saveRun, clearRun,
   loadRunScore, saveRunScore, enemyHp, computeRoomsCleared,
-  MAX_HP, DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT, COINS_PER_ENEMY, COINS_PER_BOSS, HEAL_COST, HEAL_AMOUNT,
+  MAX_HP, DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT, COINS_PER_ENEMY, COINS_PER_BOSS, HEAL_AMOUNT,
 } from '../runState'
 import type { ClassName } from '../types'
 
@@ -14,7 +14,6 @@ describe('constants', () => {
   })
   it('COINS_PER_ENEMY is 5', () => expect(COINS_PER_ENEMY).toBe(5))
   it('COINS_PER_BOSS is 20', () => expect(COINS_PER_BOSS).toBe(20))
-  it('HEAL_COST is 10', () => expect(HEAL_COST).toBe(10))
   it('HEAL_AMOUNT is 5', () => expect(HEAL_AMOUNT).toBe(5))
 })
 
