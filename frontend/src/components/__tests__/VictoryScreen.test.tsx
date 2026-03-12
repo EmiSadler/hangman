@@ -34,4 +34,9 @@ describe('VictoryScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /play again/i }))
     expect(onNewRun).toHaveBeenCalledTimes(1)
   })
+
+  test('does not show boss name when defeatedBossName is null', () => {
+    render(<VictoryScreen run={run} score={score} defeatedBossName={null} onNewRun={() => {}} />)
+    expect(screen.queryByText(/you defeated/i)).not.toBeInTheDocument()
+  })
 })

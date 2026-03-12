@@ -1,3 +1,4 @@
+import { computeRoomsCleared } from '../runState'
 import type { RunState, RunScore } from '../types'
 
 interface VictoryScreenProps {
@@ -8,6 +9,8 @@ interface VictoryScreenProps {
 }
 
 export default function VictoryScreen({ run, score, defeatedBossName, onNewRun }: VictoryScreenProps) {
+  const roomsCleared = computeRoomsCleared(run)
+  const totalRooms = run.floor * 11
   return (
     <div className="victory-screen">
       <h1 className="victory-screen__heading">V I C T O R Y</h1>
@@ -18,11 +21,11 @@ export default function VictoryScreen({ run, score, defeatedBossName, onNewRun }
       <div className="victory-screen__stats">
         <div className="victory-screen__stat">
           <span>Floors cleared</span>
-          <span>3 / 3</span>
+          <span>{run.floor} / {run.floor}</span>
         </div>
         <div className="victory-screen__stat">
           <span>Rooms cleared</span>
-          <span>33 / 33</span>
+          <span>{roomsCleared} / {totalRooms}</span>
         </div>
         <div className="victory-screen__stat">
           <span>Coins</span>
