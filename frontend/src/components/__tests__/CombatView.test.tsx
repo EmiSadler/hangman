@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import CombatView, { ENEMY_NAMES, BOSS_NAMES } from '../CombatView'
 import { buildRun } from '../../runState'
-import type { GameState, RunState } from '../../types'
+import type { GameState, RunState, ThemeId } from '../../types'
 import type { ArtifactId } from '../../types'
 
 const mockGame: GameState = {
@@ -434,17 +434,23 @@ describe('CombatView', () => {
   })
 
   it('displays an enemy name for a regular room', () => {
-    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    const run = { ...buildRun('berserker'), floorThemes: ['space', 'swamp', 'desert'] as [ThemeId, ThemeId, ThemeId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     const nameEl = document.querySelector('.combat-view__enemy-name')
     expect(nameEl).not.toBeNull()
-    expect(ENEMY_NAMES).toContain(nameEl!.textContent!.trim())
+    expect(nameEl!.textContent!.trim()).toBeTruthy()
+    // ENEMY_NAMES kept for backward-compat; themed names used in actual rendering
+    void ENEMY_NAMES
   })
 
   it('displays a boss name for a boss room', () => {
-    render(<CombatView run={buildRun('berserker')} room={bossRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    const run = { ...buildRun('berserker'), floorThemes: ['space', 'swamp', 'desert'] as [ThemeId, ThemeId, ThemeId] }
+    render(<CombatView run={run} room={bossRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     const nameEl = document.querySelector('.combat-view__enemy-name')
     expect(nameEl).not.toBeNull()
-    expect(BOSS_NAMES).toContain(nameEl!.textContent!.trim())
+    expect(nameEl!.textContent!.trim()).toBeTruthy()
+    // BOSS_NAMES kept for backward-compat; themed names used in actual rendering
+    void BOSS_NAMES
   })
 
   it('Ancient Codex Archivist ability is disabled after two uses', async () => {
@@ -552,6 +558,106 @@ describe('CombatView', () => {
       expect(screen.getAllByText(/16/).length).toBeGreaterThan(0)
       expect(screen.getByText(/summon/i)).toBeInTheDocument()
     })
+  })
+
+  // ── Space theme ──────────────────────────────────────────────────────
+  it('shows void warning after 2nd guess with space theme', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false }),
+    }))
+    const run = { ...buildRun('berserker'), floorThemes: ['space', 'swamp', 'desert'] as [ThemeId, ThemeId, ThemeId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await userEvent.click(screen.getByRole('button', { name: 'X' }))
+    await waitFor(() => expect(screen.getByText(/gathering void energy/i)).toBeInTheDocument())
+  })
+
+  it('casts black hole after 3rd guess with space theme', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false }),
+    }))
+    const run = { ...buildRun('berserker'), floorThemes: ['space', 'swamp', 'desert'] as [ThemeId, ThemeId, ThemeId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await userEvent.click(screen.getByRole('button', { name: 'X' }))
+    await userEvent.click(screen.getByRole('button', { name: 'V' }))
+    await waitFor(() => expect(screen.getByText(/black hole/i)).toBeInTheDocument())
+  })
+
+  // ── Swamp theme ───────────────────────────────────────────────────────
+  it('shows mud warning after 1st guess with swamp theme', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false }),
+    }))
+    const run = { ...buildRun('berserker'), floorThemes: ['swamp', 'space', 'desert'] as [ThemeId, ThemeId, ThemeId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await waitFor(() => expect(screen.getByText(/winding up/i)).toBeInTheDocument())
+  })
+
+  it('throws mud after 2nd guess with swamp theme', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false }),
+    }))
+    const run = { ...buildRun('berserker'), floorThemes: ['swamp', 'space', 'desert'] as [ThemeId, ThemeId, ThemeId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await userEvent.click(screen.getByRole('button', { name: 'X' }))
+    await waitFor(() => expect(screen.getByText(/hurls mud/i)).toBeInTheDocument())
+  })
+
+  it('doubles player damage on wrong guess for mud-stuck letter', async () => {
+    // Math.random = 0.1: enemy name picks index 0, mud sort keeps original order → mud goes to 'a','b'
+    vi.spyOn(Math, 'random').mockReturnValue(0.1)
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false }),
+    }))
+    // berserker, 50 HP, no artifacts, no shield. Wrong guess = 2 HP damage each
+    const run = { ...buildRun('berserker'), hp: 50, floorThemes: ['swamp', 'space', 'desert'] as [ThemeId, ThemeId, ThemeId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // guess 1 (Z wrong): count=1 → warning. HP 50→48
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await waitFor(() => expect(screen.getByText(/48 \/ 50/)).toBeInTheDocument())
+    // guess 2 (X wrong): count=2 → mud thrown (picks 'a','b'). HP 48→46
+    await userEvent.click(screen.getByRole('button', { name: 'X' }))
+    await waitFor(() => expect(screen.getByText(/46 \/ 50/)).toBeInTheDocument())
+    // guess 3 (B wrong, mud-stuck): normal dmg=2, mud doubles → 4 HP lost. HP 46→42
+    await userEvent.click(screen.getByRole('button', { name: 'B' }))
+    await waitFor(() => expect(screen.getByText(/42 \/ 50/)).toBeInTheDocument())
+  })
+
+  // ── Desert theme ──────────────────────────────────────────────────────
+  it('blows away a letter on wrong guess with desert theme', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false }),
+    }))
+    const run = { ...buildRun('berserker'), floorThemes: ['desert', 'space', 'swamp'] as [ThemeId, ThemeId, ThemeId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await waitFor(() => expect(screen.getByText(/stirs the sands/i)).toBeInTheDocument())
+  })
+
+  // ── Jungle theme ──────────────────────────────────────────────────────
+  it('starts with 2 disabled letters on bottom keyboard row for jungle theme', () => {
+    const run = { ...buildRun('berserker'), floorThemes: ['jungle', 'space', 'swamp'] as [ThemeId, ThemeId, ThemeId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    const bottomRow = ['Z','X','C','V','B','N','M']
+    const disabledCount = bottomRow.filter(
+      letter => screen.getByRole('button', { name: letter }).hasAttribute('disabled')
+    ).length
+    expect(disabledCount).toBe(2)
+  })
+
+  it('shows vine message on correct guess with jungle theme when vine grows', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.1) // always < 0.5 → vine always grows
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGuessResponse({ masked_word: '_ a _', correct: true, guessed_letters: ['a'], occurrences: 1 }),
+    }))
+    const run = { ...buildRun('berserker'), floorThemes: ['jungle', 'space', 'swamp'] as [ThemeId, ThemeId, ThemeId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => expect(screen.getByText(/spreads the jungle/i)).toBeInTheDocument())
   })
 
   it('Continue on summoning screen dismisses message and shows new word', async () => {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import type { GameState, Room, RunState, ClassName, ArtifactId } from '../types'
+import type { GameState, Room, RunState, ClassName, ArtifactId, ThemeId } from '../types'
 import {
   DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT,
   COINS_PER_ENEMY, COINS_PER_BOSS, enemyHp,
@@ -54,6 +54,30 @@ export const BOSS_NAMES = [
   'Death Knight', 'Ancient Vampire', 'The Hollow King',
   'Bone Colossus', 'Plague Bringer', 'Void Serpent',
   'The Undying', 'Abyssal Tyrant',
+]
+
+const THEME_ENEMY_NAMES: Record<ThemeId, string[]> = {
+  space:  ['Void Stalker', 'Nebula Wraith', 'Star Devourer', 'Cosmic Horror',
+           'Event Horizon', 'Dark Matter', 'Gravity Well', 'Stellar Parasite'],
+  swamp:  ['Bog Witch', 'Mud Golem', 'Fetid Lurker', 'Spore Shambler',
+           'Swamp Troll', 'Plague Mosquito', 'Mire Beast', 'Toxic Salamander'],
+  desert: ['Sand Wraith', 'Dune Scorpion', 'Heat Mirage', 'Dust Devil',
+           'Bone Collector', 'Desert Sphinx', 'Sand Leech', 'Cactus Demon'],
+  jungle: ['Vine Strangler', 'Poison Dart Frog', 'Canopy Serpent', 'Thorn Lizard',
+           'Feral Hunter', 'Moss Titan', 'Jungle Witch', 'Spore Creeper'],
+}
+
+const THEME_BOSS_NAMES: Record<ThemeId, string[]> = {
+  space:  ['The Singularity', 'Void Emperor', 'Entropy Lord', 'The Event Horizon'],
+  swamp:  ['The Bog Queen', 'Ancient Ooze', 'The Pestilence', 'Swamp Colossus'],
+  desert: ['The Sand King', 'The Buried God', 'Eternal Dune', 'The Bone Sovereign'],
+  jungle: ['The Canopy Sovereign', 'Apex Predator', 'The Ancient Tree', 'The Green God'],
+}
+
+const KEYBOARD_ROWS = [
+  ['z','x','c','v','b','n','m'],
+  ['a','s','d','f','g','h','j','k','l'],
+  ['q','w','e','r','t','y','u','i','o','p'],
 ]
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('')
@@ -117,6 +141,7 @@ function calcDamageTaken(
 }
 
 export default function CombatView({ run, room, initialState, floor, onCombatEnd }: Props) {
+  const theme: ThemeId = run.floorThemes[floor - 1]
   const maxEnemyHp = enemyHp(initialState.word.length, floor)
   const [currentEnemyHp, setCurrentEnemyHp] = useState(maxEnemyHp)
   const [displayRun, setDisplayRun] = useState<RunState>(() =>
@@ -141,6 +166,11 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   )
   const [blockedLetters, setBlockedLetters] = useState<string[]>([])
   const [guessedLetters, setGuessedLetters] = useState<string[]>(initialState.guessedLetters)
+  const guessCountRef = useRef(0)
+  const [voidLetters, setVoidLetters] = useState<string[]>([])
+  const [mudLetters, setMudLetters] = useState<string[]>([])
+  const [vinedLetters, setVinedLetters] = useState<string[]>([])
+  const [castMessage, setCastMessage] = useState<string | null>(null)
   const enemyHpRef = useRef(maxEnemyHp)
   const [currentGame, setCurrentGame] = useState<GameState>(initialState)
   const [summoningHp, setSummoningHp] = useState<number | null>(null)
@@ -152,6 +182,13 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     }
   }, [currentEnemyHp]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (theme !== 'jungle') return
+    const bottomRow = KEYBOARD_ROWS[0]
+    const shuffled = [...bottomRow].sort(() => Math.random() - 0.5)
+    setVinedLetters([shuffled[0], shuffled[1]])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // --- Artifact info-display values (computed once from props) ---
   const vowelCount = run.artifacts.includes('vowel_seeker' as ArtifactId)
     ? [...currentGame.word].filter(l => VOWELS.has(l)).length
@@ -161,7 +198,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     run.artifacts.includes('category_scroll' as ArtifactId) && run.className !== 'archivist'
 
   const [enemyName] = useState(() => {
-    const pool = room.type === 'boss' ? BOSS_NAMES : ENEMY_NAMES
+    const pool = room.type === 'boss' ? THEME_BOSS_NAMES[theme] : THEME_ENEMY_NAMES[theme]
     return pool[Math.floor(Math.random() * pool.length)]
   })
 
@@ -174,6 +211,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   })
 
   function handleGuessResult(letter: string, correct: boolean, occurrences: number) {
+    setCastMessage(null)
     const isAbilityHit = abilityMode && correct
     const isAbilityMiss = abilityMode && !correct
     const wasAbilityMode = abilityMode
@@ -215,9 +253,12 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       if (run.className === 'berserker') setRage(prev => prev + 1)
       if (run.artifacts.includes('blood_dagger')) setBloodDaggerReady(true)
 
-      const { playerDmg, shieldLeft } = calcDamageTaken(
+      const { playerDmg: rawPlayerDmg, shieldLeft } = calcDamageTaken(
         letter, run.className, isAbilityMiss, displayRun.shield, run.artifacts,
       )
+      const playerDmg = (theme === 'swamp' && mudLetters.includes(letter))
+        ? rawPlayerDmg * 2
+        : rawPlayerDmg
       const newHp = Math.max(0, displayRun.hp - playerDmg)
       setDisplayRun(prev => ({ ...prev, hp: newHp, shield: shieldLeft }))
       if (newHp <= 0) {
@@ -227,6 +268,28 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     }
 
     if (!wasAbilityMode) setCooldown(prev => Math.max(0, prev - 1))
+
+    // Theme mechanics
+    guessCountRef.current += 1
+    const count = guessCountRef.current
+
+    if (theme === 'space') {
+      if (count % 3 === 2) {
+        setCastMessage(`${enemyName} is gathering void energy...`)
+      } else if (count % 3 === 0) {
+        fireBlackHole()
+      }
+    } else if (theme === 'swamp') {
+      if (count % 2 === 1) {
+        setCastMessage(`${enemyName} is winding up...`)
+      } else if (count % 2 === 0) {
+        throwMud()
+      }
+    } else if (theme === 'desert' && !correct) {
+      blowLetterAway()
+    } else if (theme === 'jungle' && correct) {
+      growVines()
+    }
   }
 
   async function handleWordSolved() {
@@ -319,6 +382,57 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     if (newHp <= 0) finishCombat(false, newHp)
   }
 
+  function pickRandom(arr: string[], n: number): string[] {
+    const result: string[] = []
+    for (const item of arr) {
+      if (result.length >= n) break
+      if (Math.random() < 0.5) result.push(item)
+    }
+    return result
+  }
+
+  function getAvailable(): string[] {
+    return ALPHABET.filter(l =>
+      !guessedLetters.includes(l) &&
+      !blockedLetters.includes(l) &&
+      !voidLetters.includes(l) &&
+      !vinedLetters.includes(l)
+    )
+  }
+
+  function fireBlackHole() {
+    const targets = pickRandom(getAvailable().filter(l => !mudLetters.includes(l)), 3)
+    if (targets.length > 0) setVoidLetters(prev => [...prev, ...targets])
+    setCastMessage(`${enemyName} casts Black Hole! ${targets.length} letter${targets.length !== 1 ? 's are' : ' is'} sucked into the void!`)
+  }
+
+  function throwMud() {
+    const targets = pickRandom(getAvailable().filter(l => !mudLetters.includes(l)), 2)
+    if (targets.length > 0) setMudLetters(prev => [...prev, ...targets])
+    setCastMessage(`${enemyName} hurls mud! ${targets.length} letter${targets.length !== 1 ? 's are' : ' is'} stuck!`)
+  }
+
+  function blowLetterAway() {
+    const available = getAvailable()
+    if (available.length === 0) return
+    const blown = available[Math.floor(Math.random() * available.length)]
+    setBlockedLetters(prev => [...prev, blown])
+    setCastMessage(`${enemyName} stirs the sands! '${blown.toUpperCase()}' blows away!`)
+  }
+
+  function growVines() {
+    if (Math.random() >= 0.5) return
+    for (const row of KEYBOARD_ROWS) {
+      const available = row.filter(l => !vinedLetters.includes(l) && !guessedLetters.includes(l))
+      if (available.length > 0) {
+        const target = available[Math.floor(Math.random() * available.length)]
+        setVinedLetters(prev => [...prev, target])
+        setCastMessage(`${enemyName} spreads the jungle! Vines creep higher!`)
+        return
+      }
+    }
+  }
+
   const enemyDead = currentEnemyHp <= 0 && !combatDone
 
   const playAgainLabel = displayRun.hp <= 0 ? 'Play Again' : 'Continue'
@@ -337,7 +451,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     : abilityName
 
   return (
-    <div className="combat-view">
+    <div className="combat-view" data-theme={theme}>
       <p className="combat-view__floor">Floor {floor}</p>
       <div className="combat-view__arena">
         <div className="combat-view__player">
@@ -413,6 +527,9 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           )}
         </div>
       )}
+      {castMessage && (
+        <div className="combat-view__cast-message">{castMessage}</div>
+      )}
       {summoningHp !== null ? (
         <div className="summoning-screen">
           <p className="summoning-screen__message">
@@ -437,6 +554,9 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           playAgainLabel={playAgainLabel}
           combatOver={combatDone || enemyDead}
           blockedLetters={blockedLetters}
+          voidLetters={voidLetters}
+          mudLetters={mudLetters}
+          vinedLetters={vinedLetters}
           onWrongSolve={handleWrongSolve}
         />
       )}
