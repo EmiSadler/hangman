@@ -1127,6 +1127,29 @@ button:disabled {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Generic primary CTA button ────────────────────────── */
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
 /* ── FloorIntroScreen ───────────────────────────────────── */
 
 .floor-intro {

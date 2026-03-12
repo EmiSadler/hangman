@@ -1,5 +1,4 @@
-import type { RunState } from '../types'
-import type { ThemeId } from '../types'
+import type { RunState, ThemeId } from '../types'
 
 interface FloorIntroScreenProps {
   run: RunState
@@ -43,7 +42,7 @@ export default function FloorIntroScreen({ run, defeatedBossName, onContinue }: 
       <h1 className="floor-intro__title">{data.title}</h1>
       <p className="floor-intro__tagline">{data.tagline}</p>
       <p className="floor-intro__hint">{data.mechanicHint}</p>
-      <button className="btn btn-primary floor-intro__btn" onClick={onContinue}>
+      <button className="btn-primary floor-intro__btn" onClick={onContinue}>
         Enter Floor {run.floor}
       </button>
     </div>
