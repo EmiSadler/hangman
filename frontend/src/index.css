@@ -1126,3 +1126,59 @@ button:disabled {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── FloorIntroScreen ───────────────────────────────────── */
+
+.floor-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+  gap: 1rem;
+}
+
+.floor-intro__victory {
+  font-size: 0.95rem;
+  color: #c9a227;
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+.floor-intro__floor-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.floor-intro__title {
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  color: var(--accent);
+  margin: 0;
+  letter-spacing: 0.06em;
+}
+
+.floor-intro__tagline {
+  font-size: 1.1rem;
+  color: var(--text);
+  max-width: 32rem;
+  margin: 0.5rem 0 0;
+  line-height: 1.6;
+}
+
+.floor-intro__hint {
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 30rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.floor-intro__btn {
+  margin-top: 1rem;
+}
