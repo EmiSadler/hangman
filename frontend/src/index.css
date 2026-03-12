@@ -6,7 +6,7 @@
   --accent:       #c08040;
   --accent-hover: #a06830;
   --text:         #e8dcc8;
-  --text-muted:   #9a8e78;  /* was #8a7e6a — bumped from 4.4:1 to 5.4:1 contrast */
+  --text-muted:   #9a8e78;
   --correct:      #4a7c59;
   --wrong:        #8b2e2e;
   --border:       #3e3a2e;
@@ -1084,15 +1084,15 @@ button:disabled {
 }
 
 [data-theme="desert"] {
-  --bg:           #4e2808;  /* warm amber-brown — dusty sand in shadow */
-  --surface:      #6e3e10;  /* sandy-brown surface */
-  --accent:       #f0b030;  /* hot sun gold */
+  --bg:        #4e2808;
+  --surface:   #6e3e10;
+  --accent:    #f0b030;
   --accent-hover: #cc9020;
-  --text:         #f8e4b4;  /* bleached sand — 10.3:1 contrast */
-  --text-muted:   #d4a050;  /* dusty gold — 5.5:1 contrast */
-  --border:       #5c3208;
-  --correct:      #4a7c59;
-  --wrong:        #8b2e2e;
+  --text:      #f8e4b4;
+  --text-muted: #d4a050;
+  --border:    #5c3208;
+  --correct:   #4a7c59;
+  --wrong:     #8b2e2e;
 }
 
 [data-theme="jungle"] {
