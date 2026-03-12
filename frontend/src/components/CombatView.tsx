@@ -74,6 +74,7 @@ const THEME_BOSS_NAMES: Record<ThemeId, string[]> = {
   jungle: ['The Canopy Sovereign', 'Apex Predator', 'The Ancient Tree', 'The Green God'],
 }
 
+// Bottom-row-first so growVines iterates upward (z-row → a-row → q-row)
 const KEYBOARD_ROWS = [
   ['z','x','c','v','b','n','m'],
   ['a','s','d','f','g','h','j','k','l'],
