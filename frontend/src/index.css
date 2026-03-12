@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600&display=swap');
 
 :root {
-  --bg:           #fdf6e3;
-  --surface:      #fffbf0;
-  --accent:       #8b4513;
-  --accent-hover: #6b3410;
-  --text:         #2c1810;
-  --text-muted:   #7a5c4a;
+  --bg:           #1c1a16;
+  --surface:      #28261e;
+  --accent:       #c08040;
+  --accent-hover: #a06830;
+  --text:         #e8dcc8;
+  --text-muted:   #8a7e6a;
   --correct:      #4a7c59;
   --wrong:        #8b2e2e;
-  --border:       #d4b896;
+  --border:       #3e3a2e;
   --heal:         #4caf50;
 }
 
@@ -1084,13 +1084,13 @@ button:disabled {
 }
 
 [data-theme="desert"] {
-  --bg:        #f5e6c8;
-  --surface:   #fdf2da;
+  --bg:        #2a1500;
+  --surface:   #3d1e04;
   --accent:    #c17f24;
   --accent-hover: #a06818;
-  --text:      #4a2f0a;
-  --text-muted: #8a6a40;
-  --border:    #d4b896;
+  --text:      #f0d898;
+  --text-muted: #a07840;
+  --border:    #5c3212;
   --correct:   #4a7c59;
   --wrong:     #8b2e2e;
 }
