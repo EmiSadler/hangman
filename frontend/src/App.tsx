@@ -3,6 +3,7 @@ import type { GameState, GameStatus, RunState, RunScore, Room, ClassName } from 
 import {
   buildRun, buildRooms, loadRun, saveRun, clearRun,
   loadRunScore, saveRunScore, computeRoomsCleared,
+  pickFloorThemes,
   SCORE_KEY,
 } from './runState'
 import RunSetup from './components/RunSetup'
@@ -95,7 +96,7 @@ export default function App() {
   }
 
   async function handleStartRun(className: ClassName) {
-    const newRun = buildRun(className)
+    const newRun = buildRun(className, pickFloorThemes())
     const sessionId = await createSession()
     const runWithSession: RunState = { ...newRun, sessionId }
     saveRun(runWithSession)

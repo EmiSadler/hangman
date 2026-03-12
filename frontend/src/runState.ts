@@ -44,7 +44,7 @@ export function buildRooms(floor: number): Room[] {
   return getFloorLayout(floor).map(type => ({ type, completed: false, gameId: null }))
 }
 
-export function buildRun(className: ClassName): RunState {
+export function buildRun(className: ClassName, floorThemes?: [ThemeId, ThemeId, ThemeId]): RunState {
   const maxHp = CLASS_MAX_HP[className]
   return {
     hp: maxHp,
@@ -60,7 +60,7 @@ export function buildRun(className: ClassName): RunState {
     artifacts: [],
     sessionId: null,
     bonusDamage: 0,
-    floorThemes: pickFloorThemes(),
+    floorThemes: floorThemes ?? ['space', 'swamp', 'desert'],
   }
 }
 
