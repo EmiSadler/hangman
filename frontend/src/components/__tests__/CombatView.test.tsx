@@ -94,6 +94,22 @@ describe('CombatView', () => {
     expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 5 }), undefined)
   })
 
+  it('calls onCombatEnd with a non-empty bossName string when boss fight is won', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ masked_word: 'c a t', correct: true, guessed_letters: ['c','a','t'], status: 'won', occurrences: 3 }),
+    }))
+    const onCombatEnd = vi.fn()
+    const run: RunState = { ...buildRun('berserker'), hp: 50, coins: 0 }
+    render(<CombatView run={run} room={bossRoom()} initialState={mockGame} floor={1} onCombatEnd={onCombatEnd} />)
+    await userEvent.click(screen.getByRole('button', { name: 'T' }))
+    await waitFor(() => screen.getByRole('button', { name: /continue/i }))
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+    expect(onCombatEnd).toHaveBeenCalledWith(
+      expect.objectContaining({ coins: 20 }),
+      expect.stringMatching(/\S+/),
+    )
+  })
+
   it('shows Play Again when player HP hits 0', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
