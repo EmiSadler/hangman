@@ -44,23 +44,35 @@ describe('Keyboard', () => {
     screen.getAllByRole('button').forEach(btn => expect(btn).not.toHaveClass('key--blocked'))
   })
 
-  it('disables void letters', () => {
+  it('disables void letters and applies key--void class', () => {
     render(<Keyboard guessedLetters={[]} correctLetters={[]} onGuess={vi.fn()} disabled={false} voidLetters={['a', 'b']} />)
-    expect(screen.getByRole('button', { name: 'A' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'B' })).toBeDisabled()
+    const aBtn = screen.getByRole('button', { name: 'A' })
+    expect(aBtn).toBeDisabled()
+    expect(aBtn).toHaveClass('key--void')
+    const bBtn = screen.getByRole('button', { name: 'B' })
+    expect(bBtn).toBeDisabled()
+    expect(bBtn).toHaveClass('key--void')
     expect(screen.getByRole('button', { name: 'C' })).not.toBeDisabled()
   })
 
-  it('does not disable mud letters', () => {
+  it('does not disable mud letters but applies key--mud class', () => {
     render(<Keyboard guessedLetters={[]} correctLetters={[]} onGuess={vi.fn()} disabled={false} mudLetters={['a', 'b']} />)
-    expect(screen.getByRole('button', { name: 'A' })).not.toBeDisabled()
-    expect(screen.getByRole('button', { name: 'B' })).not.toBeDisabled()
+    const aBtn = screen.getByRole('button', { name: 'A' })
+    expect(aBtn).not.toBeDisabled()
+    expect(aBtn).toHaveClass('key--mud')
+    const bBtn = screen.getByRole('button', { name: 'B' })
+    expect(bBtn).not.toBeDisabled()
+    expect(bBtn).toHaveClass('key--mud')
   })
 
-  it('disables vined letters', () => {
+  it('disables vined letters and applies key--vined class', () => {
     render(<Keyboard guessedLetters={[]} correctLetters={[]} onGuess={vi.fn()} disabled={false} vinedLetters={['z', 'x']} />)
-    expect(screen.getByRole('button', { name: 'Z' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'X' })).toBeDisabled()
+    const zBtn = screen.getByRole('button', { name: 'Z' })
+    expect(zBtn).toBeDisabled()
+    expect(zBtn).toHaveClass('key--vined')
+    const xBtn = screen.getByRole('button', { name: 'X' })
+    expect(xBtn).toBeDisabled()
+    expect(xBtn).toHaveClass('key--vined')
     expect(screen.getByRole('button', { name: 'C' })).not.toBeDisabled()
   })
 })
