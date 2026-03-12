@@ -1056,3 +1056,73 @@ button:disabled {
   font-size: 1rem;
   margin: 0;
 }
+
+/* ── Floor Theme Palettes ───────────────────────────────── */
+
+[data-theme="space"] {
+  --bg:        #0d0d2b;
+  --surface:   #1a1a3e;
+  --accent:    #7c3aed;
+  --accent-hover: #6d28d9;
+  --text:      #e0e0ff;
+  --text-muted: #9d8fc0;
+  --border:    #3d2d6e;
+  --correct:   #4a7c59;
+  --wrong:     #8b2e2e;
+}
+
+[data-theme="swamp"] {
+  --bg:        #1a2a1a;
+  --surface:   #243324;
+  --accent:    #6b8e23;
+  --accent-hover: #556b18;
+  --text:      #c8d8b0;
+  --text-muted: #8aaa70;
+  --border:    #3a5a2a;
+  --correct:   #4a7c59;
+  --wrong:     #8b2e2e;
+}
+
+[data-theme="desert"] {
+  --bg:        #f5e6c8;
+  --surface:   #fdf2da;
+  --accent:    #c17f24;
+  --accent-hover: #a06818;
+  --text:      #4a2f0a;
+  --text-muted: #8a6a40;
+  --border:    #d4b896;
+  --correct:   #4a7c59;
+  --wrong:     #8b2e2e;
+}
+
+[data-theme="jungle"] {
+  --bg:        #0d2010;
+  --surface:   #1a3a1a;
+  --accent:    #22c55e;
+  --accent-hover: #16a34a;
+  --text:      #d0f0c0;
+  --text-muted: #70b080;
+  --border:    #2a5a2a;
+  --correct:   #4a7c59;
+  --wrong:     #8b2e2e;
+}
+
+/* ── Cast Message ───────────────────────────────────────── */
+
+.combat-view__cast-message {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  margin: 0.5rem 0;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
