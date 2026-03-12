@@ -9,6 +9,8 @@ export type ArtifactId =
   | 'healing_salve' | 'gold_tooth'
   | 'battle_scar' | 'shadow_cloak' | 'mana_crystal' | 'ancient_codex'
 
+export type ThemeId = 'space' | 'swamp' | 'desert' | 'jungle'
+
 export interface GameState {
   gameId: string
   maskedWord: string
@@ -41,6 +43,7 @@ export interface RunState {
   artifacts: ArtifactId[]
   sessionId: string | null
   bonusDamage: number
+  floorThemes: [ThemeId, ThemeId, ThemeId]
 }
 
 export interface RunScore {

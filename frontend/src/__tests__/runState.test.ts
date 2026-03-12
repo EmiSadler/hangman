@@ -3,8 +3,9 @@ import {
   getFloorLayout, buildRooms, buildRun, loadRun, saveRun, clearRun,
   loadRunScore, saveRunScore, enemyHp, computeRoomsCleared,
   MAX_HP, DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT, COINS_PER_ENEMY, COINS_PER_BOSS, HEAL_AMOUNT,
+  pickFloorThemes,
 } from '../runState'
-import type { ClassName } from '../types'
+import type { ClassName, ThemeId } from '../types'
 
 describe('constants', () => {
   it('MAX_HP is 50', () => expect(MAX_HP).toBe(50))
@@ -153,6 +154,39 @@ describe('localStorage helpers', () => {
     localStorage.setItem('hangman_run', JSON.stringify(legacy))
     const loaded = loadRun()
     expect(loaded?.bonusDamage).toBe(0)
+  })
+  it('loadRun generates floorThemes when missing from saved data', () => {
+    const run = buildRun('berserker')
+    const legacy = { ...run } as Record<string, unknown>
+    delete legacy.floorThemes
+    localStorage.setItem('hangman_run', JSON.stringify(legacy))
+    const loaded = loadRun()
+    expect(loaded?.floorThemes.length).toBe(3)
+  })
+})
+
+describe('pickFloorThemes', () => {
+  it('returns exactly 3 themes', () => {
+    expect(pickFloorThemes().length).toBe(3)
+  })
+  it('returns no duplicate themes', () => {
+    const themes = pickFloorThemes()
+    expect(new Set(themes).size).toBe(3)
+  })
+  it('all themes are valid ThemeIds', () => {
+    const valid = new Set<string>(['space', 'swamp', 'desert', 'jungle'])
+    pickFloorThemes().forEach(t => expect(valid.has(t)).toBe(true))
+  })
+})
+
+describe('buildRun floorThemes', () => {
+  it('includes floorThemes with 3 entries', () => {
+    const run = buildRun('berserker')
+    expect(run.floorThemes.length).toBe(3)
+  })
+  it('all entries are valid ThemeIds', () => {
+    const valid = new Set<string>(['space', 'swamp', 'desert', 'jungle'])
+    buildRun('berserker').floorThemes.forEach(t => expect(valid.has(t)).toBe(true))
   })
 })
 

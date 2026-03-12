@@ -1,4 +1,4 @@
-import type { Room, RunState, RunScore, RoomType, ClassName } from './types'
+import type { Room, RunState, RunScore, RoomType, ClassName, ThemeId } from './types'
 
 export const MAX_HP = 50
 
@@ -17,6 +17,15 @@ export const WRONG_SOLVE_PENALTY = 5
 
 export const RUN_KEY = 'hangman_run'
 export const SCORE_KEY = 'hangman_score'
+
+export function pickFloorThemes(): [ThemeId, ThemeId, ThemeId] {
+  const all: ThemeId[] = ['space', 'swamp', 'desert', 'jungle']
+  for (let i = all.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [all[i], all[j]] = [all[j], all[i]]
+  }
+  return [all[0], all[1], all[2]]
+}
 
 const LAYOUT_A: RoomType[] = [
   'enemy', 'enemy', 'enemy', 'enemy', 'rest',
@@ -51,6 +60,7 @@ export function buildRun(className: ClassName): RunState {
     artifacts: [],
     sessionId: null,
     bonusDamage: 0,
+    floorThemes: pickFloorThemes(),
   }
 }
 
@@ -70,6 +80,7 @@ export function loadRun(): RunState | null {
     if (!parsed.artifacts) parsed.artifacts = []
     if (parsed.sessionId === undefined) parsed.sessionId = null
     if (parsed.bonusDamage === undefined) parsed.bonusDamage = 0
+    if (!parsed.floorThemes) parsed.floorThemes = pickFloorThemes()
     return parsed
   } catch {
     return null
