@@ -171,6 +171,29 @@ button:disabled {
   color: var(--text-muted);
 }
 
+.key--void {
+  opacity: 0.2;
+  background: #1a1a1a;
+  border-color: #4a4a6a;
+  color: transparent;
+  cursor: not-allowed;
+}
+
+.key--mud {
+  background: #5c3d1a;
+  border-color: #8b6c3a;
+  color: #e8d4a8;
+}
+
+.key--vined {
+  opacity: 0.35;
+  background: #1a4a1a;
+  border-color: #2a6a2a;
+  color: #6aaa6a;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
 /* ── GameResult ────────────────────────────────────────── */
 
 .game-result {

@@ -12,10 +12,13 @@ interface Props {
   playAgainLabel?: string
   combatOver?: boolean
   blockedLetters?: string[]
+  voidLetters?: string[]
+  mudLetters?: string[]
+  vinedLetters?: string[]
   onWrongSolve?: () => void
 }
 
-export default function GameBoard({ initialState, onGuessResult, onWordSolved, onPlayAgain, playAgainLabel, combatOver, blockedLetters = [], onWrongSolve }: Props) {
+export default function GameBoard({ initialState, onGuessResult, onWordSolved, onPlayAgain, playAgainLabel, combatOver, blockedLetters = [], voidLetters = [], mudLetters = [], vinedLetters = [], onWrongSolve }: Props) {
   const [game, setGame] = useState<GameState>(initialState)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -104,11 +107,13 @@ export default function GameBoard({ initialState, onGuessResult, onWordSolved, o
       if (letter.length !== 1 || !/^[a-z]$/.test(letter)) return
       if (game.guessedLetters.includes(letter)) return
       if (blockedLetters.includes(letter)) return
+      if (voidLetters.includes(letter)) return
+      if (vinedLetters.includes(letter)) return
       handleGuess(letter)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOver, loading, game.guessedLetters, blockedLetters, handleGuess])
+  }, [isOver, loading, game.guessedLetters, blockedLetters, voidLetters, vinedLetters, handleGuess])
 
   return (
     <div className="game-board">
@@ -122,6 +127,9 @@ export default function GameBoard({ initialState, onGuessResult, onWordSolved, o
             onGuess={handleGuess}
             disabled={loading}
             blockedLetters={blockedLetters}
+            voidLetters={voidLetters}
+            mudLetters={mudLetters}
+            vinedLetters={vinedLetters}
           />
           <form className="game-board__solve-form" onSubmit={handleSolve}>
             <input
