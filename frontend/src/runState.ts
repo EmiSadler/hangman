@@ -80,7 +80,9 @@ export function loadRun(): RunState | null {
     if (!parsed.artifacts) parsed.artifacts = []
     if (parsed.sessionId === undefined) parsed.sessionId = null
     if (parsed.bonusDamage === undefined) parsed.bonusDamage = 0
-    if (!parsed.floorThemes) parsed.floorThemes = pickFloorThemes()
+    if (!Array.isArray(parsed.floorThemes) || parsed.floorThemes.length !== 3) {
+      parsed.floorThemes = pickFloorThemes()
+    }
     return parsed
   } catch {
     return null
