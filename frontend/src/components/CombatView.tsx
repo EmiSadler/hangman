@@ -13,7 +13,7 @@ interface Props {
   room: Room
   initialState: GameState
   floor: number
-  onCombatEnd: (updatedRun: RunState) => void
+  onCombatEnd: (updatedRun: RunState, bossName?: string) => void
 }
 
 const CLASS_LABELS: Record<ClassName, string> = {
@@ -362,7 +362,9 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   }
 
   function handleContinue() {
-    onCombatEnd(pendingRun ?? displayRun)
+    const finalRun = pendingRun ?? displayRun
+    const bossName = room.type === 'boss' && finalRun.hp > 0 ? enemyName : undefined
+    onCombatEnd(finalRun, bossName)
   }
 
   function handleAbility() {

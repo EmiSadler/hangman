@@ -91,7 +91,7 @@ describe('CombatView', () => {
     await userEvent.click(screen.getByRole('button', { name: 'T' }))
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
-    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 5 }))
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 5 }), undefined)
   })
 
   it('shows Play Again when player HP hits 0', async () => {
@@ -207,7 +207,7 @@ describe('CombatView', () => {
     // enemy HP = 0 → useEffect fires finishCombat → combatDone=true → Continue shown
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
-    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 5 }))
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 5 }), undefined)
   })
 
   it('Iron Shield starts combat with 2 shield', () => {
@@ -382,7 +382,7 @@ describe('CombatView', () => {
     await userEvent.click(screen.getByRole('button', { name: 'T' }))
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
-    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ hp: 43 }))
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ hp: 43 }), undefined)
   })
 
   it('Healing Salve caps HP at maxHp', async () => {
@@ -398,7 +398,7 @@ describe('CombatView', () => {
     await userEvent.click(screen.getByRole('button', { name: 'T' }))
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
-    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ hp: 50 }))
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ hp: 50 }), undefined)
   })
 
   it('Gold Tooth awards +5 bonus coins after combat win', async () => {
@@ -415,7 +415,7 @@ describe('CombatView', () => {
     await userEvent.click(screen.getByRole('button', { name: 'T' }))
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
-    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 10 }))
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 10 }), undefined)
   })
 
   it('Ancient Codex allows Archivist to use Cross Reference a second time', async () => {
