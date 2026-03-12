@@ -288,7 +288,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     } else if (theme === 'desert' && !correct) {
       blowLetterAway()
     } else if (theme === 'jungle' && correct) {
-      growVines()
+      growVines(letter)
     }
   }
 
@@ -383,12 +383,13 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   }
 
   function pickRandom(arr: string[], n: number): string[] {
-    const result: string[] = []
-    for (const item of arr) {
-      if (result.length >= n) break
-      if (Math.random() < 0.5) result.push(item)
+    const pool = [...arr]
+    const count = Math.min(n, pool.length)
+    for (let i = 0; i < count; i++) {
+      const j = i + Math.floor(Math.random() * (pool.length - i))
+      ;[pool[i], pool[j]] = [pool[j], pool[i]]
     }
-    return result
+    return pool.slice(0, count)
   }
 
   function getAvailable(): string[] {
@@ -420,10 +421,10 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     setCastMessage(`${enemyName} stirs the sands! '${blown.toUpperCase()}' blows away!`)
   }
 
-  function growVines() {
+  function growVines(justGuessed: string) {
     if (Math.random() >= 0.5) return
     for (const row of KEYBOARD_ROWS) {
-      const available = row.filter(l => !vinedLetters.includes(l) && !guessedLetters.includes(l))
+      const available = row.filter(l => !vinedLetters.includes(l) && !guessedLetters.includes(l) && l !== justGuessed)
       if (available.length > 0) {
         const target = available[Math.floor(Math.random() * available.length)]
         setVinedLetters(prev => [...prev, target])

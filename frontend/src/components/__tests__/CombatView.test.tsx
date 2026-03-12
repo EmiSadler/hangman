@@ -607,8 +607,6 @@ describe('CombatView', () => {
   })
 
   it('doubles player damage on wrong guess for mud-stuck letter', async () => {
-    // Math.random = 0.1: enemy name picks index 0, mud sort keeps original order → mud goes to 'a','b'
-    vi.spyOn(Math, 'random').mockReturnValue(0.1)
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true, json: async () => mockGuessResponse({ correct: false }),
     }))
@@ -618,11 +616,17 @@ describe('CombatView', () => {
     // guess 1 (Z wrong): count=1 → warning. HP 50→48
     await userEvent.click(screen.getByRole('button', { name: 'Z' }))
     await waitFor(() => expect(screen.getByText(/48 \/ 50/)).toBeInTheDocument())
-    // guess 2 (X wrong): count=2 → mud thrown (picks 'a','b'). HP 48→46
+    // guess 2 (X wrong): count=2 → mud thrown. HP 48→46
     await userEvent.click(screen.getByRole('button', { name: 'X' }))
     await waitFor(() => expect(screen.getByText(/46 \/ 50/)).toBeInTheDocument())
-    // guess 3 (B wrong, mud-stuck): normal dmg=2, mud doubles → 4 HP lost. HP 46→42
-    await userEvent.click(screen.getByRole('button', { name: 'B' }))
+    // Find a mud-stuck letter by its CSS class and guess it (wrong) → expect double damage
+    await waitFor(() => {
+      const mudBtn = document.querySelector('.key--mud:not([disabled])') as HTMLButtonElement | null
+      expect(mudBtn).not.toBeNull()
+    })
+    const mudBtn = document.querySelector('.key--mud:not([disabled])') as HTMLButtonElement
+    await userEvent.click(mudBtn)
+    // Normal wrong = 2 dmg, mud doubles → 4 dmg. HP 46→42
     await waitFor(() => expect(screen.getByText(/42 \/ 50/)).toBeInTheDocument())
   })
 
