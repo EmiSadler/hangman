@@ -110,7 +110,7 @@ export default function App() {
 
   async function handleFloorIntroContinue() {
     if (!run) return
-    await fetchAndEnterCombat(run, 'enemy', false)
+    await enterRoom(run, run.rooms[run.roomIndex])
   }
 
   async function handleCombatEnd(updatedRun: RunState, bossName?: string) {
