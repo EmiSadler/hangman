@@ -589,6 +589,7 @@ button:disabled {
 }
 
 .combat-view__player-sprite-placeholder {
+  position: relative;
   width: 80px;
   height: 80px;
   border: 2px dashed var(--border);
@@ -625,6 +626,7 @@ button:disabled {
 }
 
 .combat-view__enemy-sprite-placeholder {
+  position: relative;
   width: 80px;
   height: 80px;
   border: 2px dashed var(--border);
@@ -1275,4 +1277,40 @@ button:disabled {
   font-size: 0.95rem;
   color: #9a8e78;
   margin: 0;
+}
+
+/* ── Damage feedback ─────────────────────────────────────── */
+
+@keyframes float-up-fade {
+  0%   { transform: translateX(-50%) translateY(0);     opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-36px); opacity: 0; }
+}
+
+@keyframes flash-hit {
+  0%   { background: transparent; }
+  30%  { background: rgba(180, 40, 40, 0.5); }
+  100% { background: transparent; }
+}
+
+.damage-popup {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--wrong);
+  pointer-events: none;
+  white-space: nowrap;
+  animation: float-up-fade 0.8s ease-out forwards;
+  z-index: 10;
+}
+
+.damage-popup--heal {
+  color: var(--heal);
+}
+
+.flash-hit {
+  animation: flash-hit 0.4s ease-out forwards;
 }
