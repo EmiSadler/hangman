@@ -13,7 +13,7 @@ export default function ArtifactShelf({ artifacts, vertical = false }: Props) {
   if (artifacts.length === 0) return null
 
   return (
-    <div className={`artifact-shelf${vertical ? ' artifact-shelf--vertical' : ''}`}>
+    <div className={`artifact-shelf${vertical ? ' artifact-shelf--vertical' : ''}${vertical && artifacts.length > 3 ? ' artifact-shelf--two-col' : ''}`}>
       {artifacts.map(id => {
         const art = ARTIFACTS[id]
         return (
