@@ -1288,7 +1288,7 @@ button:disabled {
 
 @keyframes flash-hit {
   0%   { background: transparent; }
-  30%  { background: rgba(180, 40, 40, 0.5); }
+  30%  { background: rgba(139, 46, 46, 0.5); }
   100% { background: transparent; }
 }
 
