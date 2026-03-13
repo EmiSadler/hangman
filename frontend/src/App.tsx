@@ -7,6 +7,7 @@ import {
   SCORE_KEY,
 } from './runState'
 import RunSetup from './components/RunSetup'
+import HowToPlayScreen from './components/HowToPlayScreen'
 import FloorProgress from './components/FloorProgress'
 import CombatView from './components/CombatView'
 import RestArea from './components/RestArea'
@@ -17,10 +18,12 @@ import FloorIntroScreen from './components/FloorIntroScreen'
 import VictoryScreen from './components/VictoryScreen'
 import './App.css'
 
-type AppPhase = 'idle' | 'floor_intro' | 'combat' | 'rest' | 'treasure' | 'shop' | 'run_won' | 'run_lost'
+type AppPhase = 'how_to_play' | 'idle' | 'floor_intro' | 'combat' | 'rest' | 'treasure' | 'shop' | 'run_won' | 'run_lost'
 
 export default function App() {
-  const [phase, setPhase] = useState<AppPhase>('idle')
+  const [phase, setPhase] = useState<AppPhase>(() =>
+    localStorage.getItem('hangman_seen_howto') ? 'idle' : 'how_to_play'
+  )
   const [run, setRun] = useState<RunState | null>(null)
   const [score, setScore] = useState<RunScore>(loadRunScore)
   const [currentGame, setCurrentGame] = useState<GameState | null>(null)
@@ -96,6 +99,11 @@ export default function App() {
     } catch {
       setError('Could not reach server — is the backend running?')
     }
+  }
+
+  function handleHowToPlayDone() {
+    localStorage.setItem('hangman_seen_howto', '1')
+    setPhase('idle')
   }
 
   async function handleStartRun(className: ClassName) {
@@ -247,7 +255,7 @@ export default function App() {
     setPhase('idle')
   }
 
-  const showProgress = phase !== 'idle' && phase !== 'floor_intro' && phase !== 'run_won' && phase !== 'run_lost'
+  const showProgress = phase !== 'how_to_play' && phase !== 'idle' && phase !== 'floor_intro' && phase !== 'run_won' && phase !== 'run_lost'
 
   return (
     <div className="app">
@@ -261,8 +269,16 @@ export default function App() {
         />
       )}
 
+      {phase === 'how_to_play' && (
+        <HowToPlayScreen onDone={handleHowToPlayDone} />
+      )}
       {phase === 'idle' && (
-        <RunSetup onStart={handleStartRun} score={score} onReset={handleReset} />
+        <RunSetup
+          onStart={handleStartRun}
+          score={score}
+          onReset={handleReset}
+          onShowHelp={() => setPhase('how_to_play')}
+        />
       )}
 
       {showProgress && run && (

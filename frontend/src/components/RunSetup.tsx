@@ -6,6 +6,7 @@ interface Props {
   onStart: (className: ClassName) => void
   score: RunScore
   onReset: () => void
+  onShowHelp: () => void
 }
 
 const CLASSES: {
@@ -50,9 +51,8 @@ const CLASSES: {
   },
 ]
 
-export default function RunSetup({ onStart, score, onReset }: Props) {
+export default function RunSetup({ onStart, score, onReset, onShowHelp }: Props) {
   const [selected, setSelected] = useState<ClassName | null>(null)
-  const [showHelp, setShowHelp] = useState(false)
 
   return (
     <div className="run-setup">
@@ -92,20 +92,10 @@ export default function RunSetup({ onStart, score, onReset }: Props) {
 
       <button
         className="btn-how-to-play"
-        onClick={() => setShowHelp(v => !v)}
+        onClick={onShowHelp}
       >
-        How to play {showHelp ? '▴' : '▾'}
+        How to play ?
       </button>
-
-      {showHelp && (
-        <div className="how-to-play">
-          <p><strong>Run structure:</strong> 3 floors, 12 rooms each</p>
-          <p><strong>Room types:</strong> enemy, boss, rest area, treasure</p>
-          <p><strong>Combat:</strong> correct guesses damage the enemy; wrong guesses damage you</p>
-          <p><strong>Win:</strong> reduce enemy HP to 0 or solve the word</p>
-          <p><strong>Lose:</strong> your HP reaches 0</p>
-        </div>
-      )}
 
       <button className="btn-forget" onClick={onReset}>Forget me</button>
     </div>

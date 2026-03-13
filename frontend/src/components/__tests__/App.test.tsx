@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import App from '../../App'
 
 const mockGameResponse = {
@@ -16,6 +16,7 @@ describe('App', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     localStorage.clear()
+    localStorage.setItem('hangman_seen_howto', '1')
   })
 
   it('shows RunSetup on initial render', () => {
@@ -255,6 +256,38 @@ describe('App', () => {
     await userEvent.click(screen.getByRole('button', { name: /leave/i }))
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
+    })
+  })
+
+  describe('HowToPlayScreen', () => {
+    beforeEach(() => localStorage.clear())
+    afterEach(() => localStorage.clear())
+
+    it('shows HowToPlayScreen on first visit (no localStorage key)', () => {
+      render(<App />)
+      expect(screen.getByText(/the goal/i)).toBeInTheDocument()
+      expect(screen.queryByText(/choose your class/i)).not.toBeInTheDocument()
+    })
+
+    it('skips HowToPlayScreen on repeat visit (key present)', () => {
+      localStorage.setItem('hangman_seen_howto', '1')
+      render(<App />)
+      expect(screen.queryByText(/the goal/i)).not.toBeInTheDocument()
+      expect(screen.getByText(/choose your class/i)).toBeInTheDocument()
+    })
+
+    it('clicking Got it shows class selection and sets localStorage key', async () => {
+      render(<App />)
+      await userEvent.click(screen.getByRole('button', { name: /got it/i }))
+      expect(screen.getByText(/choose your class/i)).toBeInTheDocument()
+      expect(localStorage.getItem('hangman_seen_howto')).toBe('1')
+    })
+
+    it('How to play button on RunSetup navigates back to HowToPlayScreen', async () => {
+      localStorage.setItem('hangman_seen_howto', '1')
+      render(<App />)
+      await userEvent.click(screen.getByRole('button', { name: /how to play/i }))
+      expect(screen.getByText(/the goal/i)).toBeInTheDocument()
     })
   })
 })
