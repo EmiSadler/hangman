@@ -41,4 +41,18 @@ describe('ArtifactShelf', () => {
     expect(container.firstChild).toHaveClass('artifact-shelf')
     expect(container.firstChild).not.toHaveClass('artifact-shelf--vertical')
   })
+
+  it('applies two-col modifier when vertical and more than 3 artifacts', () => {
+    const { container } = render(
+      <ArtifactShelf artifacts={['short_sword', 'iron_shield', 'crystal_ball', 'blood_dagger']} vertical />
+    )
+    expect(container.firstChild).toHaveClass('artifact-shelf--two-col')
+  })
+
+  it('does not apply two-col modifier when 3 or fewer artifacts', () => {
+    const { container } = render(
+      <ArtifactShelf artifacts={['short_sword', 'iron_shield', 'crystal_ball']} vertical />
+    )
+    expect(container.firstChild).not.toHaveClass('artifact-shelf--two-col')
+  })
 })
