@@ -186,11 +186,20 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
 
   const [popups, setPopups] = useState<DamagePopup[]>([])
   const nextPopupId = useRef(0)
+  const popupTimers = useRef<ReturnType<typeof setTimeout>[]>([])
+
+  useEffect(() => {
+    return () => { popupTimers.current.forEach(clearTimeout) }
+  }, [])
 
   function pushPopup(value: number, target: 'player' | 'enemy', heal = false) {
     const id = nextPopupId.current++
     setPopups(prev => [...prev, { id, value, target, heal }])
-    setTimeout(() => setPopups(prev => prev.filter(p => p.id !== id)), 850)
+    const timerId = setTimeout(
+      () => setPopups(prev => prev.filter(p => p.id !== id)),
+      850,
+    )
+    popupTimers.current.push(timerId)
   }
 
   useEffect(() => {
@@ -419,6 +428,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   function handleWrongSolve() {
     const newHp = Math.max(0, displayRun.hp - WRONG_SOLVE_PENALTY)
     setDisplayRun(prev => ({ ...prev, hp: Math.max(0, prev.hp - WRONG_SOLVE_PENALTY) }))
+    pushPopup(WRONG_SOLVE_PENALTY, 'player')
     if (newHp <= 0) finishCombat(false, newHp)
   }
 
