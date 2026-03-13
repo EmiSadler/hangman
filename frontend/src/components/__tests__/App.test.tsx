@@ -28,37 +28,59 @@ describe('App', () => {
     expect(screen.getByText(/0 runs cleared/i)).toBeInTheDocument()
   })
 
-  it('switches to CombatView after starting a run', async () => {
+  it('shows FloorIntroScreen after starting a run', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => mockGameResponse,
+      json: async () => ({ session_id: 'test-session' }),
     }))
     render(<App />)
     await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /enter floor 1/i })).toBeInTheDocument()
+    })
+  })
+
+  it('switches to CombatView after clicking Enter Floor', async () => {
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ session_id: 'test-session' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGameResponse }),
+    )
+    render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: /enter floor 1/i }))
+    await userEvent.click(screen.getByRole('button', { name: /enter floor 1/i }))
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
     })
   })
 
   it('shows error when server is unreachable', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')))
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ session_id: 'test-session' }) })
+      .mockRejectedValueOnce(new Error('Network error')),
+    )
     render(<App />)
     await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: /enter floor 1/i }))
+    await userEvent.click(screen.getByRole('button', { name: /enter floor 1/i }))
     await waitFor(() => {
       expect(screen.getByText(/could not reach server/i)).toBeInTheDocument()
     })
   })
 
   it('shows FloorProgress during combat', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => mockGameResponse,
-    }))
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ session_id: 'test-session' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGameResponse }),
+    )
     render(<App />)
     await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: /enter floor 1/i }))
+    await userEvent.click(screen.getByRole('button', { name: /enter floor 1/i }))
     await waitFor(() => {
       expect(screen.getByLabelText(/floor 1 progress/i)).toBeInTheDocument()
     })
@@ -99,6 +121,8 @@ describe('App', () => {
     render(<App />)
     await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: /enter floor 1/i }))
+    await userEvent.click(screen.getByRole('button', { name: /enter floor 1/i }))
     await waitFor(() => screen.getByRole('button', { name: 'A' }))
 
     await userEvent.click(screen.getByRole('button', { name: 'A' }))
@@ -112,19 +136,29 @@ describe('App', () => {
   })
 
   it('shows Give Up button during an active run', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => mockGameResponse }))
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ session_id: 'test-session' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGameResponse }),
+    )
     render(<App />)
     await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: /enter floor 1/i }))
+    await userEvent.click(screen.getByRole('button', { name: /enter floor 1/i }))
     await waitFor(() => screen.getByRole('button', { name: 'A' }))
     expect(screen.getByRole('button', { name: /give up/i })).toBeInTheDocument()
   })
 
   it('clicking Give Up ends the run as a loss and shows the run-lost screen', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => mockGameResponse }))
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ session_id: 'test-session' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGameResponse }),
+    )
     render(<App />)
     await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: /enter floor 1/i }))
+    await userEvent.click(screen.getByRole('button', { name: /enter floor 1/i }))
     await waitFor(() => screen.getByRole('button', { name: /give up/i }))
     await userEvent.click(screen.getByRole('button', { name: /give up/i }))
     expect(screen.getByText(/you died/i)).toBeInTheDocument()
@@ -152,7 +186,7 @@ describe('App', () => {
     render(<App />)
     await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
-    await waitFor(() => screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => screen.getByRole('button', { name: /enter floor 1/i }))
     expect(fetchMock.mock.calls[0][0]).toBe('/api/session')
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST' })
   })
@@ -165,6 +199,8 @@ describe('App', () => {
     render(<App />)
     await userEvent.click(screen.getByText(/berserker/i))
     await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: /enter floor 1/i }))
+    await userEvent.click(screen.getByRole('button', { name: /enter floor 1/i }))
     await waitFor(() => screen.getByRole('button', { name: 'A' }))
     const gameCallBody = JSON.parse(fetchMock.mock.calls[1][1].body as string)
     expect(gameCallBody.session_id).toBe('run-abc')

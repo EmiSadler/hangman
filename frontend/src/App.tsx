@@ -13,9 +13,11 @@ import RestArea from './components/RestArea'
 import TreasureArea from './components/TreasureArea'
 import ShopArea from './components/ShopArea'
 import RunResult from './components/RunResult'
+import FloorIntroScreen from './components/FloorIntroScreen'
+import VictoryScreen from './components/VictoryScreen'
 import './App.css'
 
-type AppPhase = 'idle' | 'combat' | 'rest' | 'treasure' | 'shop' | 'run_won' | 'run_lost'
+type AppPhase = 'idle' | 'floor_intro' | 'combat' | 'rest' | 'treasure' | 'shop' | 'run_won' | 'run_lost'
 
 export default function App() {
   const [phase, setPhase] = useState<AppPhase>('idle')
@@ -23,6 +25,7 @@ export default function App() {
   const [score, setScore] = useState<RunScore>(loadRunScore)
   const [currentGame, setCurrentGame] = useState<GameState | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [defeatedBossName, setDefeatedBossName] = useState<string | null>(null)
 
   // Resume saved run on mount
   useEffect(() => {
@@ -101,10 +104,16 @@ export default function App() {
     const runWithSession: RunState = { ...newRun, sessionId }
     saveRun(runWithSession)
     setRun(runWithSession)
-    await fetchAndEnterCombat(runWithSession, 'enemy', false)
+    setDefeatedBossName(null)
+    setPhase('floor_intro')
   }
 
-  async function handleCombatEnd(updatedRun: RunState) {
+  async function handleFloorIntroContinue() {
+    if (!run) return
+    await fetchAndEnterCombat(run, 'enemy', false)
+  }
+
+  async function handleCombatEnd(updatedRun: RunState, bossName?: string) {
     const roomIndex = updatedRun.roomIndex
     const updatedRooms = updatedRun.rooms.map((r, i) =>
       i === roomIndex ? { ...r, completed: true } : r,
@@ -141,6 +150,7 @@ export default function App() {
           saveRunScore(next)
           return next
         })
+        setDefeatedBossName(bossName ?? null)
         setPhase('run_won')
         return
       } else {
@@ -154,7 +164,8 @@ export default function App() {
         }
         saveRun(nextFloorRun)
         setRun(nextFloorRun)
-        await fetchAndEnterCombat(nextFloorRun, 'enemy', false)
+        setDefeatedBossName(bossName ?? null)
+        setPhase('floor_intro')
         return
       }
     }
@@ -236,11 +247,19 @@ export default function App() {
     setPhase('idle')
   }
 
-  const showProgress = phase !== 'idle' && phase !== 'run_won' && phase !== 'run_lost'
+  const showProgress = phase !== 'idle' && phase !== 'floor_intro' && phase !== 'run_won' && phase !== 'run_lost'
 
   return (
     <div className="app">
       {error && <p className="app__error">{error}</p>}
+
+      {phase === 'floor_intro' && run && (
+        <FloorIntroScreen
+          run={run}
+          defeatedBossName={defeatedBossName}
+          onContinue={handleFloorIntroContinue}
+        />
+      )}
 
       {phase === 'idle' && (
         <RunSetup onStart={handleStartRun} score={score} onReset={handleReset} />
@@ -277,9 +296,18 @@ export default function App() {
         <ShopArea run={run} onLeave={handleShopLeave} />
       )}
 
-      {(phase === 'run_won' || phase === 'run_lost') && run && (
+      {phase === 'run_won' && run && (
+        <VictoryScreen
+          run={run}
+          score={score}
+          defeatedBossName={defeatedBossName}
+          onNewRun={handleNewRun}
+        />
+      )}
+
+      {phase === 'run_lost' && run && (
         <RunResult
-          won={phase === 'run_won'}
+          won={false}
           roomsCleared={computeRoomsCleared(run)}
           score={score}
           onNewRun={handleNewRun}
