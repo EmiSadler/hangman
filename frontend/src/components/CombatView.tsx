@@ -203,13 +203,22 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     return pool[Math.floor(Math.random() * pool.length)]
   })
 
-  const [crystalBallLetter] = useState<string | null>(() => {
+  const [crystalBallLetter, setCrystalBallLetter] = useState<string | null>(() => {
     if (!run.artifacts.includes('crystal_ball' as ArtifactId)) return null
     const candidates = [...new Set(initialState.word.split(''))]
       .filter(l => !initialState.guessedLetters.includes(l) && l !== initialState.firstLetter)
     if (candidates.length === 0) return null
     return candidates[Math.floor(Math.random() * candidates.length)]
   })
+
+  // Recompute crystal ball letter when a summoned word replaces the current word mid-combat
+  useEffect(() => {
+    if (currentGame.gameId === initialState.gameId) return
+    if (!run.artifacts.includes('crystal_ball' as ArtifactId)) return
+    const candidates = [...new Set(currentGame.word.split(''))]
+      .filter(l => !currentGame.guessedLetters.includes(l) && l !== currentGame.firstLetter)
+    setCrystalBallLetter(candidates.length === 0 ? null : candidates[Math.floor(Math.random() * candidates.length)])
+  }, [currentGame.gameId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleGuessResult(letter: string, correct: boolean, occurrences: number) {
     setCastMessage(null)

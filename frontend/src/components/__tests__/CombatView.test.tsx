@@ -680,6 +680,41 @@ describe('CombatView', () => {
     await waitFor(() => expect(screen.getByText(/spreads the jungle/i)).toBeInTheDocument())
   })
 
+  it('Crystal Ball updates its letter after a summoned word replaces the current word', async () => {
+    // word='cat', firstLetter='c' → crystal ball picks 'a' or 't'
+    // New summoned word='dog', firstLetter='d' → crystal ball should pick 'o' or 'g'
+    // Neither 'a' nor 't' appear in 'dog', so this distinguishes old vs new hint
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockGuessResponse({
+          masked_word: 'c a t', correct: true,
+          guessed_letters: ['c', 'a', 't'], status: 'won', occurrences: 1,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          game_id: 'new-id', word: 'dog', masked_word: '_ _ _',
+          category: 'animals', first_letter: 'd', guessed_letters: [],
+        }),
+      })
+    )
+    const run = { ...buildRun('berserker'), artifacts: ['crystal_ball'] as ArtifactId[] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={3} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'T' }))
+    const continueBtn = await waitFor(() => {
+      const btn = screen.getByRole('button', { name: /continue/i })
+      expect(btn).not.toBeDisabled()
+      return btn
+    })
+    await userEvent.click(continueBtn)
+    await waitFor(() => expect(screen.queryByText(/summon/i)).not.toBeInTheDocument())
+    // Crystal ball must now show a letter from 'dog' (not from 'cat')
+    expect(screen.queryByText(/🔮 [AT] is in this word/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/🔮 [OG] is in this word/i)).toBeInTheDocument()
+  })
+
   it('Continue on summoning screen dismisses message and shows new word', async () => {
     vi.stubGlobal('fetch', vi.fn()
       .mockResolvedValueOnce({
