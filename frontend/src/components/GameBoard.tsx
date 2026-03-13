@@ -7,7 +7,7 @@ import GameResult from './GameResult'
 interface Props {
   initialState: GameState
   onGuessResult: (letter: string, correct: boolean, occurrences: number) => void
-  onWordSolved: () => void
+  onWordSolved: (hiddenRemaining: number) => void
   onPlayAgain: () => void
   playAgainLabel?: string
   combatOver?: boolean
@@ -59,7 +59,7 @@ export default function GameBoard({ initialState, onGuessResult, onWordSolved, o
       setGame(updated)
       onGuessResult(letter, data.correct, data.occurrences)
       if (updated.status === 'won') {
-        onWordSolved()
+        onWordSolved(0)
       }
     } catch {
       setError('Could not reach server — try again')
@@ -85,8 +85,9 @@ export default function GameBoard({ initialState, onGuessResult, onWordSolved, o
         return
       }
       if (data.status === 'won') {
+        const hiddenRemaining = game.maskedWord.split(' ').filter(c => c === '_').length
         setGame(prev => ({ ...prev, status: 'won', maskedWord: data.masked_word }))
-        onWordSolved()
+        onWordSolved(hiddenRemaining)
       } else {
         setSolveInput('')
         onWrongSolve?.()

@@ -746,4 +746,35 @@ describe('CombatView', () => {
     // 'E' key available (keyboard reset with new word)
     expect(screen.getByRole('button', { name: 'E' })).toBeInTheDocument()
   })
+
+  it('deals damage for hidden letters when player solves by typing', async () => {
+    // word='cat' (3 letters), floor=3 → enemy HP = 3×3×2 = 18
+    // maskedWord='_ _ _' → hiddenRemaining=3
+    // Solve correctly → 3 × BASE_DAMAGE_PER_HIT(2) = 6 damage → HP 18→12
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: 'won', masked_word: 'c a t' }),
+    }))
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={3} onCombatEnd={vi.fn()} />)
+    const input = screen.getByPlaceholderText(/type the word/i)
+    await userEvent.type(input, 'cat')
+    await userEvent.click(screen.getByRole('button', { name: /solve/i }))
+    await waitFor(() => expect(screen.getByText(/12 \/ 18/)).toBeInTheDocument())
+  })
+
+  it('no extra damage when word won by guessing all letters', async () => {
+    // word='cat', floor=1 → enemy HP=6. Guess 'a' (1 occ, 2 dmg → HP 4), then guess all
+    // winning guess should not double-deal damage
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGuessResponse({ masked_word: '_ a _', correct: true, guessed_letters: ['a'], status: 'in_progress', occurrences: 1 }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGuessResponse({ masked_word: 'c a _', correct: true, guessed_letters: ['a','c'], status: 'in_progress', occurrences: 1 }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockGuessResponse({ masked_word: 'c a t', correct: true, guessed_letters: ['a','c','t'], status: 'won', occurrences: 1 }) })
+    )
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await userEvent.click(screen.getByRole('button', { name: 'C' }))
+    await userEvent.click(screen.getByRole('button', { name: 'T' }))
+    // 3×2 = 6 total dmg, enemy HP 6→0 → combat done, Continue shown
+    await waitFor(() => screen.getByRole('button', { name: /continue/i }))
+  })
 })

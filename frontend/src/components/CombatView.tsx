@@ -302,7 +302,15 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     }
   }
 
-  async function handleWordSolved() {
+  async function handleWordSolved(hiddenRemaining: number) {
+    if (hiddenRemaining > 0) {
+      let dmg = hiddenRemaining * BASE_DAMAGE_PER_HIT
+      if (run.artifacts.includes('short_sword')) dmg += 1
+      dmg += run.bonusDamage
+      const newEnemyHp = Math.max(0, enemyHpRef.current - dmg)
+      enemyHpRef.current = newEnemyHp
+      setCurrentEnemyHp(newEnemyHp)
+    }
     if (enemyHpRef.current > 0) {
       const hp = enemyHpRef.current
       setSummoningHp(hp)
