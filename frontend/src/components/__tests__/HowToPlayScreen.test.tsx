@@ -10,7 +10,7 @@ describe('HowToPlayScreen', () => {
     expect(screen.getByText(/combat/i)).toBeInTheDocument()
     expect(screen.getByText(/room types/i)).toBeInTheDocument()
     expect(screen.getByText(/classes/i)).toBeInTheDocument()
-    expect(screen.getAllByText(/artifacts/i).length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: /artifacts/i })).toBeInTheDocument()
   })
 
   it('calls onDone when Got it button is clicked', async () => {
