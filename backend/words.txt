@@ -57,20 +57,19 @@ candle,home
 pillow,home
 breeze,nature
 school,location
-cheesecake, food and drink
+cheesecake,food and drink
 yellow,colour
 butterfly,animal
 chocolate,food and drink
 adventurer,occupation
 detective,occupation
-orchestra,general
 pineapple,food and drink
 telescope,space
 basketball,sport
 carpenter,occupation
 apartment,location
 hurricane,nature
-knowledge,general
+university,place
 beautiful,adjective
 dangerous,adjective
 newspaper,home
@@ -107,7 +106,7 @@ dessert,food and drink
 kangaroo,animal
 curtains,home
 saltshaker,food and drink
-tequila, food and drink
+tequila,food and drink
 lemonade,food and drink
 cactus,nature
 sunflower,nature
@@ -156,4 +155,47 @@ magenta,colour
 aquamarine,colour
 dungeon,location
 helicopter,transportation
+counting,action
+writing,action
+swimming,action
+dreaming,action
+hamburger,food and drink
+cheeseburger,food and drink
+supermarket,location
+ceiling,home
+wardrobe,home
+supernova,space
+orbit,space
+asteroid,space
+galaxy,space
+andromeda,space
+celestial,space
+extraterrestrial,space
+galactic,space
+ecosystem,nature
+biodiversity,nature
+habitat,nature
+wilderness,nature
+conservation,nature
+geology,nature
+sustainability,nature
+biosphere,nature
+developer,occupation
+electrician,occupation
+plumber,occupation
+engineer,occupation
+author,occupation
+painter,occupation
+housekeeper,occupation
+gardener,occupation
+canoe,transportation
+submarine,transportation
+motorcycle,transportation
+baker,occupation
+photographer,occupation
+nurse,occupation
+doctor,occupation
+surgeon,occupation
+sweatshirt,clothing
+waistcoat,clothing
 
