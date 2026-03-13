@@ -16,6 +16,13 @@ interface Props {
   onCombatEnd: (updatedRun: RunState, bossName?: string) => void
 }
 
+interface DamagePopup {
+  id: number
+  value: number
+  target: 'player' | 'enemy'
+  heal: boolean
+}
+
 const CLASS_LABELS: Record<ClassName, string> = {
   vowel_mage: '🧙 Vowel Mage',
   archivist: '📚 Archivist',
@@ -177,6 +184,15 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   const [summoningHp, setSummoningHp] = useState<number | null>(null)
   const [nextGame, setNextGame] = useState<GameState | null>(null)
 
+  const [popups, setPopups] = useState<DamagePopup[]>([])
+  const nextPopupId = useRef(0)
+
+  function pushPopup(value: number, target: 'player' | 'enemy', heal = false) {
+    const id = nextPopupId.current++
+    setPopups(prev => [...prev, { id, value, target, heal }])
+    setTimeout(() => setPopups(prev => prev.filter(p => p.id !== id)), 850)
+  }
+
   useEffect(() => {
     if (currentEnemyHp <= 0 && !combatDone) {
       finishCombat(true)
@@ -251,6 +267,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       const newEnemyHp = Math.max(0, enemyHpRef.current - dmg)
       enemyHpRef.current = newEnemyHp
       setCurrentEnemyHp(newEnemyHp)
+      pushPopup(dmg, 'enemy')
       setHiddenCount(prev => Math.max(0, prev - occurrences))
       if (run.className === 'rogue') setCombo(prev => prev + 1)
       if (run.className === 'vowel_mage' && isAbilityHit && VOWELS.has(letter)) {
@@ -271,6 +288,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         : rawPlayerDmg
       const newHp = Math.max(0, displayRun.hp - playerDmg)
       setDisplayRun(prev => ({ ...prev, hp: newHp, shield: shieldLeft }))
+      if (playerDmg > 0) pushPopup(playerDmg, 'player')
       if (newHp <= 0) {
         finishCombat(false, newHp)
         return
@@ -310,6 +328,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       const newEnemyHp = Math.max(0, enemyHpRef.current - dmg)
       enemyHpRef.current = newEnemyHp
       setCurrentEnemyHp(newEnemyHp)
+      pushPopup(dmg, 'enemy')
     }
     if (enemyHpRef.current > 0) {
       const hp = enemyHpRef.current
@@ -394,6 +413,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     const blocked = available[Math.floor(Math.random() * available.length)]
     setBlockedLetters(prev => [...prev, blocked])
     setDisplayRun(prev => ({ ...prev, hp: Math.min(prev.maxHp, prev.hp + HEAL_AMOUNT) }))
+    pushPopup(HEAL_AMOUNT, 'player', true)
   }
 
   function handleWrongSolve() {
@@ -479,7 +499,13 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           <div className="combat-view__class-label">{CLASS_LABELS[run.className]}</div>
           <div className="combat-view__player-sprite-row">
             <ArtifactShelf artifacts={run.artifacts} vertical />
-            <div className="combat-view__player-sprite-placeholder" aria-hidden="true" />
+            <div className="combat-view__player-sprite-placeholder" aria-hidden="true">
+              {popups.filter(p => p.target === 'player').map(p => (
+                <span key={p.id} className={`damage-popup${p.heal ? ' damage-popup--heal' : ''}`}>
+                  {p.heal ? '+' : '-'}{p.value}
+                </span>
+              ))}
+            </div>
           </div>
           <div className="combat-view__player-hp-bar">
             <div
@@ -516,7 +542,13 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         </div>
         <div className="combat-view__enemy">
           <div className="combat-view__enemy-name">{enemyName}</div>
-          <div className="combat-view__enemy-sprite-placeholder" aria-hidden="true" />
+          <div className="combat-view__enemy-sprite-placeholder" aria-hidden="true">
+            {popups.filter(p => p.target === 'enemy').map(p => (
+              <span key={p.id} className="damage-popup">
+                -{p.value}
+              </span>
+            ))}
+          </div>
           <div className="combat-view__enemy-hp-bar">
             <div
               className="combat-view__enemy-hp-fill"

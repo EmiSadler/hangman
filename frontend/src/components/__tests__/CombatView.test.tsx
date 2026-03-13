@@ -777,4 +777,36 @@ describe('CombatView', () => {
     // 3×2 = 6 total dmg, enemy HP 6→0 → combat done, Continue shown
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
   })
+
+  it('shows enemy damage popup on correct guess', async () => {
+    // word='cat', floor=1 → enemy HP=6. 'a' (1 occ, 2 dmg) → popup '-2' appears on enemy side
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGuessResponse({
+        masked_word: '_ a _', correct: true,
+        guessed_letters: ['a'], status: 'in_progress', occurrences: 1,
+      }),
+    }))
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => expect(screen.getByText('-2')).toBeInTheDocument())
+  })
+
+  it('shows player damage popup on wrong guess', async () => {
+    // wrong guess → DAMAGE_PER_WRONG=2 → popup '-2' appears on player side
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
+    }))
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await waitFor(() => expect(screen.getByText('-2')).toBeInTheDocument())
+  })
+
+  it('shows heal popup when player heals', async () => {
+    // Heal button pressed → HEAL_AMOUNT=5 → popup '+5' appears
+    render(<CombatView run={lowHpRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /heal/i }))
+    await waitFor(() => expect(screen.getByText('+5')).toBeInTheDocument())
+  })
 })
