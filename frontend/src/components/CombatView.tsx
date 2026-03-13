@@ -202,6 +202,19 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     popupTimers.current.push(timerId)
   }
 
+  const [enemyFlash, setEnemyFlash] = useState(false)
+  const [playerFlash, setPlayerFlash] = useState(false)
+
+  function triggerFlash(target: 'player' | 'enemy') {
+    if (target === 'enemy') {
+      setEnemyFlash(true)
+      setTimeout(() => setEnemyFlash(false), 400)
+    } else {
+      setPlayerFlash(true)
+      setTimeout(() => setPlayerFlash(false), 400)
+    }
+  }
+
   useEffect(() => {
     if (currentEnemyHp <= 0 && !combatDone) {
       finishCombat(true)
@@ -277,6 +290,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       enemyHpRef.current = newEnemyHp
       setCurrentEnemyHp(newEnemyHp)
       pushPopup(dmg, 'enemy')
+      triggerFlash('enemy')
       setHiddenCount(prev => Math.max(0, prev - occurrences))
       if (run.className === 'rogue') setCombo(prev => prev + 1)
       if (run.className === 'vowel_mage' && isAbilityHit && VOWELS.has(letter)) {
@@ -298,6 +312,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       const newHp = Math.max(0, displayRun.hp - playerDmg)
       setDisplayRun(prev => ({ ...prev, hp: newHp, shield: shieldLeft }))
       if (playerDmg > 0) pushPopup(playerDmg, 'player')
+      if (playerDmg > 0) triggerFlash('player')
       if (newHp <= 0) {
         finishCombat(false, newHp)
         return
@@ -338,6 +353,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       enemyHpRef.current = newEnemyHp
       setCurrentEnemyHp(newEnemyHp)
       pushPopup(dmg, 'enemy')
+      triggerFlash('enemy')
     }
     if (enemyHpRef.current > 0) {
       const hp = enemyHpRef.current
@@ -509,7 +525,10 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           <div className="combat-view__class-label">{CLASS_LABELS[run.className]}</div>
           <div className="combat-view__player-sprite-row">
             <ArtifactShelf artifacts={run.artifacts} vertical />
-            <div className="combat-view__player-sprite-placeholder" aria-hidden="true">
+            <div
+              className={`combat-view__player-sprite-placeholder${playerFlash ? ' flash-hit' : ''}`}
+              aria-hidden="true"
+            >
               {popups.filter(p => p.target === 'player').map(p => (
                 <span key={p.id} className={`damage-popup${p.heal ? ' damage-popup--heal' : ''}`}>
                   {p.heal ? '+' : '-'}{p.value}
@@ -552,7 +571,10 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         </div>
         <div className="combat-view__enemy">
           <div className="combat-view__enemy-name">{enemyName}</div>
-          <div className="combat-view__enemy-sprite-placeholder" aria-hidden="true">
+          <div
+            className={`combat-view__enemy-sprite-placeholder${enemyFlash ? ' flash-hit' : ''}`}
+            aria-hidden="true"
+          >
             {popups.filter(p => p.target === 'enemy').map(p => (
               <span key={p.id} className="damage-popup">
                 -{p.value}

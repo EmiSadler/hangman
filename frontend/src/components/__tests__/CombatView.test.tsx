@@ -809,4 +809,33 @@ describe('CombatView', () => {
     await userEvent.click(screen.getByRole('button', { name: /heal/i }))
     await waitFor(() => expect(screen.getByText('+5')).toBeInTheDocument())
   })
+
+  it('applies flash-hit class to enemy sprite on correct guess', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGuessResponse({
+        masked_word: '_ a _', correct: true,
+        guessed_letters: ['a'], status: 'in_progress', occurrences: 1,
+      }),
+    }))
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => {
+      const sprite = document.querySelector('.combat-view__enemy-sprite-placeholder')
+      expect(sprite).toHaveClass('flash-hit')
+    })
+  })
+
+  it('applies flash-hit class to player sprite on wrong guess', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
+    }))
+    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await waitFor(() => {
+      const sprite = document.querySelector('.combat-view__player-sprite-placeholder')
+      expect(sprite).toHaveClass('flash-hit')
+    })
+  })
 })
