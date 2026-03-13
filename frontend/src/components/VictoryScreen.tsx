@@ -10,7 +10,7 @@ interface VictoryScreenProps {
 
 export default function VictoryScreen({ run, score, defeatedBossName, onNewRun }: VictoryScreenProps) {
   const roomsCleared = computeRoomsCleared(run)
-  const totalRooms = run.floor * 11
+  const totalRooms = run.floor * 12
   return (
     <div className="victory-screen">
       <h1 className="victory-screen__heading">V I C T O R Y</h1>
