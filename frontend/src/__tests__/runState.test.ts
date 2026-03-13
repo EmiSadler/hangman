@@ -5,7 +5,7 @@ import {
   MAX_HP, DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT, COINS_PER_ENEMY, COINS_PER_BOSS, HEAL_AMOUNT,
   pickFloorThemes,
 } from '../runState'
-import type { ClassName, ThemeId } from '../types'
+import type { ClassName } from '../types'
 
 describe('constants', () => {
   it('MAX_HP is 50', () => expect(MAX_HP).toBe(50))
