@@ -509,14 +509,14 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
         <div className="combat-view__enemy">
           <div className="combat-view__enemy-name">{enemyName}</div>
           <div className="combat-view__enemy-sprite-placeholder" aria-hidden="true" />
-          <div className="combat-view__enemy-hp-label">
-            Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
-          </div>
           <div className="combat-view__enemy-hp-bar">
             <div
               className="combat-view__enemy-hp-fill"
               style={{ width: `${Math.max(0, (currentEnemyHp / maxEnemyHp) * 100)}%` }}
             />
+          </div>
+          <div className="combat-view__enemy-hp-label">
+            Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
           </div>
         </div>
       </div>
