@@ -208,10 +208,10 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   function triggerFlash(target: 'player' | 'enemy') {
     if (target === 'enemy') {
       setEnemyFlash(true)
-      setTimeout(() => setEnemyFlash(false), 400)
+      popupTimers.current.push(setTimeout(() => setEnemyFlash(false), 400))
     } else {
       setPlayerFlash(true)
-      setTimeout(() => setPlayerFlash(false), 400)
+      popupTimers.current.push(setTimeout(() => setPlayerFlash(false), 400))
     }
   }
 
@@ -445,6 +445,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     const newHp = Math.max(0, displayRun.hp - WRONG_SOLVE_PENALTY)
     setDisplayRun(prev => ({ ...prev, hp: Math.max(0, prev.hp - WRONG_SOLVE_PENALTY) }))
     pushPopup(WRONG_SOLVE_PENALTY, 'player')
+    triggerFlash('player')
     if (newHp <= 0) finishCombat(false, newHp)
   }
 
