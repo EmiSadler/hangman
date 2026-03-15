@@ -488,11 +488,11 @@ describe('CombatView', () => {
     )
   })
 
-  it('heal button increases player HP by 5', async () => {
+  it('heal button increases player HP by 10', async () => {
     render(<CombatView run={lowHpRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     expect(screen.getByText(/HP: 20/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /heal/i }))
-    expect(screen.getByText(/HP: 25/)).toBeInTheDocument()
+    expect(screen.getByText(/HP: 30/)).toBeInTheDocument()
   })
 
   it('heal button is disabled when HP is full', () => {
@@ -804,10 +804,10 @@ describe('CombatView', () => {
   })
 
   it('shows heal popup when player heals', async () => {
-    // Heal button pressed → HEAL_AMOUNT=5 → popup '+5' appears
+    // Heal button pressed → POTION_HEAL_AMOUNT=10 → popup '+10' appears
     render(<CombatView run={lowHpRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: /heal/i }))
-    await waitFor(() => expect(screen.getByText('+5')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('+10')).toBeInTheDocument())
   })
 
   it('applies flash-hit class to enemy sprite on correct guess', async () => {

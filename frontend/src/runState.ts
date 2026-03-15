@@ -1,4 +1,4 @@
-import type { Room, RunState, RunScore, RoomType, ClassName, ThemeId } from './types'
+import type { Room, RunState, RunScore, RoomType, ClassName, ThemeId, PotionId } from './types'
 
 export const MAX_HP = 50
 
@@ -12,7 +12,8 @@ export const DAMAGE_PER_WRONG = 2
 export const BASE_DAMAGE_PER_HIT = 2
 export const COINS_PER_ENEMY = 5
 export const COINS_PER_BOSS = 20
-export const HEAL_AMOUNT = 5
+export const POTION_HEAL_AMOUNT = 10
+export const MAX_POTION_SLOTS = 4
 export const WRONG_SOLVE_PENALTY = 5
 export const MAX_INVENTORY = 8
 
@@ -59,6 +60,7 @@ export function buildRun(className: ClassName, floorThemes?: [ThemeId, ThemeId, 
     className,
     shield: 0,
     artifacts: [],
+    potions: [] as PotionId[],
     sessionId: null,
     bonusDamage: 0,
     usedWords: [],
@@ -83,6 +85,7 @@ export function loadRun(): RunState | null {
     if (parsed.sessionId === undefined) parsed.sessionId = null
     if (parsed.bonusDamage === undefined) parsed.bonusDamage = 0
     if (!Array.isArray(parsed.usedWords)) parsed.usedWords = []
+    if (!Array.isArray(parsed.potions)) parsed.potions = []
     if (!Array.isArray(parsed.floorThemes) || parsed.floorThemes.length !== 3) {
       parsed.floorThemes = pickFloorThemes()
     }

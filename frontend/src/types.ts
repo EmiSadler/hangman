@@ -9,6 +9,8 @@ export type ArtifactId =
   | 'healing_salve' | 'gold_tooth'
   | 'battle_scar' | 'shadow_cloak' | 'mana_crystal' | 'ancient_codex'
 
+export type PotionId = 'health_potion'
+
 export type ThemeId = 'space' | 'swamp' | 'desert' | 'jungle'
 
 export interface GameState {
@@ -41,6 +43,7 @@ export interface RunState {
   className: ClassName
   shield: number
   artifacts: ArtifactId[]
+  potions: PotionId[]
   sessionId: string | null
   bonusDamage: number
   usedWords: string[]

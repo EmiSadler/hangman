@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
   getFloorLayout, buildRooms, buildRun, loadRun, saveRun, clearRun,
   loadRunScore, saveRunScore, enemyHp, computeRoomsCleared,
-  MAX_HP, DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT, COINS_PER_ENEMY, COINS_PER_BOSS, HEAL_AMOUNT,
+  MAX_HP, DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT, COINS_PER_ENEMY, COINS_PER_BOSS, POTION_HEAL_AMOUNT, MAX_POTION_SLOTS,
   pickFloorThemes,
 } from '../runState'
 import type { ClassName } from '../types'
@@ -15,7 +15,8 @@ describe('constants', () => {
   })
   it('COINS_PER_ENEMY is 5', () => expect(COINS_PER_ENEMY).toBe(5))
   it('COINS_PER_BOSS is 20', () => expect(COINS_PER_BOSS).toBe(20))
-  it('HEAL_AMOUNT is 5', () => expect(HEAL_AMOUNT).toBe(5))
+  it('POTION_HEAL_AMOUNT is 10', () => expect(POTION_HEAL_AMOUNT).toBe(10))
+  it('MAX_POTION_SLOTS is 4', () => expect(MAX_POTION_SLOTS).toBe(4))
 })
 
 describe('getFloorLayout', () => {
@@ -80,6 +81,9 @@ describe('buildRun', () => {
   it('initialises bonusDamage to 0', () => {
     const run = buildRun('berserker')
     expect(run.bonusDamage).toBe(0)
+  })
+  it('includes empty potions array', () => {
+    expect(buildRun('berserker').potions).toEqual([])
   })
 })
 
@@ -162,6 +166,13 @@ describe('localStorage helpers', () => {
     localStorage.setItem('hangman_run', JSON.stringify(legacy))
     const loaded = loadRun()
     expect(loaded?.floorThemes.length).toBe(3)
+  })
+  it('adds potions:[] when field is missing', () => {
+    const old = { ...buildRun('berserker') } as Record<string, unknown>
+    delete old.potions
+    localStorage.setItem('hangman_run', JSON.stringify(old))
+    const loaded = loadRun()
+    expect(loaded?.potions).toEqual([])
   })
 })
 

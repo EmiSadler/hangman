@@ -3,7 +3,7 @@ import type { GameState, Room, RunState, ClassName, ArtifactId, ThemeId } from '
 import {
   DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT,
   COINS_PER_ENEMY, COINS_PER_BOSS, enemyHp,
-  HEAL_AMOUNT, WRONG_SOLVE_PENALTY,
+  POTION_HEAL_AMOUNT, WRONG_SOLVE_PENALTY,
 } from '../runState'
 import GameBoard from './GameBoard'
 import ArtifactShelf from './ArtifactShelf'
@@ -437,8 +437,8 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     if (available.length === 0) return
     const blocked = available[Math.floor(Math.random() * available.length)]
     setBlockedLetters(prev => [...prev, blocked])
-    setDisplayRun(prev => ({ ...prev, hp: Math.min(prev.maxHp, prev.hp + HEAL_AMOUNT) }))
-    pushPopup(HEAL_AMOUNT, 'player', true)
+    setDisplayRun(prev => ({ ...prev, hp: Math.min(prev.maxHp, prev.hp + POTION_HEAL_AMOUNT) }))
+    pushPopup(POTION_HEAL_AMOUNT, 'player', true)
   }
 
   function handleWrongSolve() {
