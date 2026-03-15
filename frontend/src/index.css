@@ -441,6 +441,34 @@ button:disabled {
   color: #fff;
 }
 
+/* ── PlayerStats ────────────────────────────────────────── */
+.player-stats {
+  margin-bottom: 1rem;
+}
+
+.player-stats__hp-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+
+.player-stats__hp-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.player-stats__row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
 /* ── TreasureArea ───────────────────────────────────────── */
 
 .treasure-area {

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { RunState, ArtifactId } from '../types'
 import { sampleArtifacts, type Artifact } from '../artifacts'
 import ArtifactShelf from './ArtifactShelf'
+import PlayerStats from './PlayerStats'
 
 interface Props {
   run: RunState
@@ -27,6 +28,7 @@ export default function TreasureArea({ run, onChoose }: Props) {
     return (
       <div className="treasure-area">
         <h2>Find an Artifact</h2>
+        <PlayerStats run={run} />
         <p>Choose one:</p>
         {artifactChoices.map(art => (
           <button key={art.id} className="btn-treasure" onClick={() => handlePickArtifact(art.id)}>
@@ -41,6 +43,7 @@ export default function TreasureArea({ run, onChoose }: Props) {
   return (
     <div className="treasure-area">
       <h2>Treasure Room</h2>
+      <PlayerStats run={run} />
       <p>Choose one bonus:</p>
       <button className="btn-treasure" onClick={() => onChoose({ ...run, pendingReveal: true })}>
         Reveal a letter in the next encounter

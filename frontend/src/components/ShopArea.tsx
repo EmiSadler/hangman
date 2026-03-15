@@ -4,6 +4,7 @@ import { sampleArtifacts, type Artifact, ARTIFACTS } from '../artifacts'
 import { POTIONS, type Potion } from '../potions'
 import { MAX_INVENTORY, MAX_POTION_SLOTS } from '../runState'
 import ArtifactShelf from './ArtifactShelf'
+import PlayerStats from './PlayerStats'
 
 interface Props {
   run: RunState
@@ -58,7 +59,7 @@ export default function ShopArea({ run, onLeave }: Props) {
   return (
     <div className="shop-area">
       <h2>Shop</h2>
-      <p className="shop-area__coins">Coins: {localRun.coins}</p>
+      <PlayerStats run={localRun} />
 
       {pendingSwap && pendingRemove ? (
         <div className="shop-area__confirm-banner">

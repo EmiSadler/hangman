@@ -1,5 +1,6 @@
 import type { RunState } from '../types'
 import ArtifactShelf from './ArtifactShelf'
+import PlayerStats from './PlayerStats'
 
 interface Props {
   run: RunState
@@ -10,8 +11,7 @@ export default function RestArea({ run, onLeave }: Props) {
   return (
     <div className="rest-area">
       <h2>Rest Area</h2>
-      <p className="rest-area__hp">HP: {run.hp} / {run.maxHp}</p>
-      <p className="rest-area__coins">Coins: {run.coins}</p>
+      <PlayerStats run={run} />
       <button
         className="btn-rest-option"
         onClick={() => onLeave({ ...run, hp: run.maxHp })}
