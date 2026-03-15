@@ -1051,7 +1051,7 @@ button:disabled {
 }
 
 .shop-area__confirm-banner p {
-  color: var(--fg);
+  color: var(--text);
   margin-bottom: 0.5rem;
 }
 
@@ -1086,8 +1086,8 @@ button:disabled {
 }
 
 .btn-cancel-swap:hover {
-  color: var(--fg);
-  border-color: var(--fg);
+  color: var(--text);
+  border-color: var(--text);
 }
 
 /* ── Summoning Screen ───────────────────────────────────── */
