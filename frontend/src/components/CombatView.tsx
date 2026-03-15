@@ -304,19 +304,36 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       if (run.className === 'berserker') setRage(prev => prev + 1)
       if (run.artifacts.includes('blood_dagger')) setBloodDaggerReady(true)
 
-      const { playerDmg: rawPlayerDmg, shieldLeft } = calcDamageTaken(
-        letter, run.className, isAbilityMiss, displayRun.shield, run.artifacts,
-      )
-      const playerDmg = (theme === 'swamp' && mudLetters.includes(letter))
-        ? rawPlayerDmg * 2
-        : rawPlayerDmg
-      const newHp = Math.max(0, displayRun.hp - playerDmg)
-      setDisplayRun(prev => ({ ...prev, hp: newHp, shield: shieldLeft }))
-      if (playerDmg > 0) pushPopup(playerDmg, 'player')
-      if (playerDmg > 0) triggerFlash('player')
-      if (newHp <= 0) {
-        finishCombat(false, newHp)
-        return
+      if (isAbilityMiss && run.className === 'archivist') {
+        // Cross Reference miss: no damage — eliminate 3 non-word letters total (the clicked one + 2 more)
+        const wordLetters = new Set(currentGame.word.split(''))
+        const alreadyUsed = new Set([...guessedLetters, letter])
+        const available = ALPHABET.filter(l =>
+          !wordLetters.has(l) &&
+          !alreadyUsed.has(l) &&
+          !blockedLetters.includes(l) &&
+          !voidLetters.includes(l) &&
+          !vinedLetters.includes(l)
+        )
+        const extra = pickRandom(available, 2)
+        if (extra.length > 0) setGuessedLetters(prev => [...prev, ...extra])
+        const eliminated = [letter, ...extra].map(l => l.toUpperCase()).join(', ')
+        setCastMessage(`Cross Reference: eliminated ${eliminated}`)
+      } else {
+        const { playerDmg: rawPlayerDmg, shieldLeft } = calcDamageTaken(
+          letter, run.className, isAbilityMiss, displayRun.shield, run.artifacts,
+        )
+        const playerDmg = (theme === 'swamp' && mudLetters.includes(letter))
+          ? rawPlayerDmg * 2
+          : rawPlayerDmg
+        const newHp = Math.max(0, displayRun.hp - playerDmg)
+        setDisplayRun(prev => ({ ...prev, hp: newHp, shield: shieldLeft }))
+        if (playerDmg > 0) pushPopup(playerDmg, 'player')
+        if (playerDmg > 0) triggerFlash('player')
+        if (newHp <= 0) {
+          finishCombat(false, newHp)
+          return
+        }
       }
     }
 

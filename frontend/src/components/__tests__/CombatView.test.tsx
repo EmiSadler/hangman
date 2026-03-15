@@ -468,6 +468,29 @@ describe('CombatView', () => {
     void BOSS_NAMES
   })
 
+  it('Cross Reference ability miss does not reduce player HP', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
+    }))
+    render(<CombatView run={buildRun('archivist')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /cross reference$/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    // Wait for ability to fire (button becomes 'used')
+    await waitFor(() => expect(screen.getByRole('button', { name: /cross reference.*used/i })).toBeDisabled())
+    // HP stays at 45 (archivist max) — no damage on ability miss
+    expect(screen.getByText(/45 \/ 45/)).toBeInTheDocument()
+  })
+
+  it('Cross Reference ability miss shows elimination cast message', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
+    }))
+    render(<CombatView run={buildRun('archivist')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /cross reference$/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await waitFor(() => expect(screen.getByText(/cross reference: eliminated/i)).toBeInTheDocument())
+  })
+
   it('Ancient Codex Archivist ability is disabled after two uses', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true, json: async () => mockGuessResponse({ correct: false, occurrences: 0 }),
