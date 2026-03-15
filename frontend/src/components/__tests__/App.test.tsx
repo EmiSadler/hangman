@@ -285,6 +285,36 @@ describe('App', () => {
     })
   })
 
+  it('shows loading message while session is being created', async () => {
+    let resolveSession!: (v: unknown) => void
+    const pendingSession = new Promise(r => { resolveSession = r })
+    vi.stubGlobal('fetch', vi.fn().mockReturnValueOnce(pendingSession))
+
+    render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+
+    expect(screen.getByText(/waking up the server/i)).toBeInTheDocument()
+
+    resolveSession({ ok: true, json: async () => ({ session_id: 'test-session' }) })
+    await waitFor(() => {
+      expect(screen.queryByText(/waking up the server/i)).not.toBeInTheDocument()
+    })
+  })
+
+  it('shows error message when session creation fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValueOnce(new Error('Network error')))
+
+    render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/couldn't reach the server/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
+    })
+  })
+
   describe('HowToPlayScreen', () => {
     beforeEach(() => localStorage.clear())
     afterEach(() => localStorage.clear())

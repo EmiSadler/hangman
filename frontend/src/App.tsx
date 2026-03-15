@@ -29,6 +29,7 @@ export default function App() {
   const [currentGame, setCurrentGame] = useState<GameState | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [defeatedBossName, setDefeatedBossName] = useState<string | null>(null)
+  const [starting, setStarting] = useState(false)
 
   // Resume saved run on mount
   useEffect(() => {
@@ -108,8 +109,22 @@ export default function App() {
   }
 
   async function handleStartRun(className: ClassName) {
+    setStarting(true)
     const newRun = buildRun(className, pickFloorThemes())
-    const sessionId = await createSession()
+    let sessionId: string | null = null
+    try {
+      sessionId = await createSession()
+    } catch {
+      setStarting(false)
+      setError("Couldn't reach the server. Please try again.")
+      return
+    }
+    if (sessionId === null) {
+      setStarting(false)
+      setError("Couldn't reach the server. Please try again.")
+      return
+    }
+    setStarting(false)
     const runWithSession: RunState = { ...newRun, sessionId }
     saveRun(runWithSession)
     setRun(runWithSession)
@@ -264,7 +279,21 @@ export default function App() {
 
   return (
     <div className="app">
-      {error && <p className="app__error">{error}</p>}
+      {error && (
+        <div className="app__error-block">
+          <p className="app__error">{error}</p>
+          {phase === 'idle' && (
+            <button className="btn btn--secondary" onClick={() => setError(null)}>Try again</button>
+          )}
+        </div>
+      )}
+
+      {starting && (
+        <div className="cold-start-overlay">
+          <p className="cold-start-overlay__message">Waking up the server…</p>
+          <p className="cold-start-overlay__sub">This can take up to a minute on first load.</p>
+        </div>
+      )}
 
       {phase === 'floor_intro' && run && (
         <FloorIntroScreen
@@ -277,7 +306,7 @@ export default function App() {
       {phase === 'how_to_play' && (
         <HowToPlayScreen onDone={handleHowToPlayDone} />
       )}
-      {phase === 'idle' && (
+      {phase === 'idle' && !starting && (
         <RunSetup
           onStart={handleStartRun}
           score={score}
