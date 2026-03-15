@@ -171,6 +171,9 @@ galaxy,space
 andromeda,space
 celestial,space
 galactic,space
+constellation,space
+meteorite,space
+satellite,space
 ecosystem,nature
 biodiversity,nature
 habitat,nature
