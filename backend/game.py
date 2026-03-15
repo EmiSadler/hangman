@@ -68,7 +68,9 @@ def new_game_from_session(session: dict, room_type: str = 'enemy', hint: bool = 
             refill = [(w, c) for w, c in all_words if len(w) >= 8]
             random.shuffle(refill)
             pool.extend(refill)
-            idx = next(i for i, (w, _) in enumerate(pool) if len(w) >= 8)
+            idx = next((i for i, (w, _) in enumerate(pool) if len(w) >= 8), None)
+            if idx is None:
+                raise ValueError("No boss-eligible words available")
         word, category = pool.pop(idx)
     else:
         if not pool:
