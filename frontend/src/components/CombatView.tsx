@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import type { GameState, Room, RunState, ClassName, ArtifactId, ThemeId } from '../types'
+import type { GameState, Room, RunState, ClassName, ArtifactId, ThemeId, PotionId } from '../types'
 import {
   DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT,
   COINS_PER_ENEMY, COINS_PER_BOSS, enemyHp,
   POTION_HEAL_AMOUNT, WRONG_SOLVE_PENALTY,
 } from '../runState'
+import { POTIONS } from '../potions'
 import GameBoard from './GameBoard'
 import ArtifactShelf from './ArtifactShelf'
 
@@ -432,12 +433,18 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     setAbilityMode(true)
   }
 
-  function handleHeal() {
-    const available = ALPHABET.filter(l => !guessedLetters.includes(l) && !blockedLetters.includes(l))
-    if (available.length === 0) return
-    const blocked = available[Math.floor(Math.random() * available.length)]
-    setBlockedLetters(prev => [...prev, blocked])
-    setDisplayRun(prev => ({ ...prev, hp: Math.min(prev.maxHp, prev.hp + POTION_HEAL_AMOUNT) }))
+  function handleUsePotion(potionId: PotionId) {
+    setDisplayRun(prev => {
+      const idx = prev.potions.indexOf(potionId)
+      if (idx === -1) return prev
+      const newPotions = [...prev.potions]
+      newPotions.splice(idx, 1)
+      return {
+        ...prev,
+        hp: Math.min(prev.maxHp, prev.hp + POTION_HEAL_AMOUNT),
+        potions: newPotions,
+      }
+    })
     pushPopup(POTION_HEAL_AMOUNT, 'player', true)
   }
 
@@ -578,14 +585,21 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
               {abilityLabel}
             </button>
           )}
-          {!combatDone && !enemyDead && (
-            <button
-              className="btn-heal"
-              onClick={handleHeal}
-              disabled={displayRun.hp >= displayRun.maxHp || ALPHABET.every(l => guessedLetters.includes(l) || blockedLetters.includes(l))}
-            >
-              🩹 Heal (+5 HP)
-            </button>
+          {!combatDone && displayRun.potions.length > 0 && (
+            <div className="combat-view__potions">
+              {displayRun.potions.map((potionId, i) => {
+                const potion = POTIONS[potionId]
+                return (
+                  <button
+                    key={i}
+                    className="btn-potion"
+                    onClick={() => handleUsePotion(potionId)}
+                  >
+                    {potion.emoji} {potion.name} (+{POTION_HEAL_AMOUNT} HP)
+                  </button>
+                )
+              })}
+            </div>
           )}
         </div>
         <div className="combat-view__enemy">

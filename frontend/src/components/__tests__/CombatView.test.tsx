@@ -3,8 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import CombatView, { ENEMY_NAMES, BOSS_NAMES } from '../CombatView'
 import { buildRun } from '../../runState'
-import type { GameState, RunState, ThemeId } from '../../types'
-import type { ArtifactId } from '../../types'
+import type { GameState, RunState, ThemeId, ArtifactId, PotionId } from '../../types'
 
 const mockGame: GameState = {
   gameId: 'test-id',
@@ -25,7 +24,7 @@ function bossRoom() {
 }
 
 function lowHpRun() {
-  return { ...buildRun('berserker'), hp: 20 }
+  return { ...buildRun('berserker'), hp: 20, potions: ['health_potion' as PotionId] }
 }
 
 function mockGuessResponse(overrides = {}) {
@@ -488,23 +487,28 @@ describe('CombatView', () => {
     )
   })
 
-  it('heal button increases player HP by 10', async () => {
+  it('potion belt shows health potion button when player has one', () => {
+    render(<CombatView run={lowHpRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /health potion/i })).toBeInTheDocument()
+  })
+
+  it('using a health potion increases HP by 10', async () => {
     render(<CombatView run={lowHpRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
     expect(screen.getByText(/HP: 20/)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /heal/i }))
+    await userEvent.click(screen.getByRole('button', { name: /health potion/i }))
     expect(screen.getByText(/HP: 30/)).toBeInTheDocument()
   })
 
-  it('heal button is disabled when HP is full', () => {
-    render(<CombatView run={buildRun('berserker')} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /heal/i })).toBeDisabled()
+  it('using a health potion removes it from the pouch', async () => {
+    render(<CombatView run={lowHpRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /health potion/i }))
+    expect(screen.queryByRole('button', { name: /health potion/i })).not.toBeInTheDocument()
   })
 
-  it('heal button blocks one keyboard key', async () => {
-    render(<CombatView run={lowHpRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
-    expect(document.querySelectorAll('.key--blocked').length).toBe(0)
-    await userEvent.click(screen.getByRole('button', { name: /heal/i }))
-    expect(document.querySelectorAll('.key--blocked').length).toBe(1)
+  it('potion belt is not shown when pouch is empty', () => {
+    const emptyRun = { ...buildRun('berserker'), hp: 20 }  // potions: []
+    render(<CombatView run={emptyRun} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: /health potion/i })).not.toBeInTheDocument()
   })
 
   it('bonusDamage adds flat damage per correct guess', async () => {
@@ -803,10 +807,9 @@ describe('CombatView', () => {
     await waitFor(() => expect(screen.getByText('-2')).toBeInTheDocument())
   })
 
-  it('shows heal popup when player heals', async () => {
-    // Heal button pressed → POTION_HEAL_AMOUNT=10 → popup '+10' appears
+  it('shows +10 popup when player uses health potion', async () => {
     render(<CombatView run={lowHpRun()} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
-    await userEvent.click(screen.getByRole('button', { name: /heal/i }))
+    await userEvent.click(screen.getByRole('button', { name: /health potion/i }))
     await waitFor(() => expect(screen.getByText('+10')).toBeInTheDocument())
   })
 
