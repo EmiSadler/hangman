@@ -170,7 +170,6 @@ asteroid,space
 galaxy,space
 andromeda,space
 celestial,space
-extraterrestrial,space
 galactic,space
 ecosystem,nature
 biodiversity,nature
