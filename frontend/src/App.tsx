@@ -70,6 +70,7 @@ export default function App() {
       const body: Record<string, unknown> = { room_type: roomType }
       if (hint) body.hint = true
       if (currentRun.sessionId) body.session_id = currentRun.sessionId
+      if (currentRun.usedWords.length > 0) body.excluded_words = currentRun.usedWords
       const resp = await fetch('/api/game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -122,6 +123,10 @@ export default function App() {
   }
 
   async function handleCombatEnd(updatedRun: RunState, bossName?: string) {
+    const word = currentGame?.word
+    if (word) {
+      updatedRun = { ...updatedRun, usedWords: [...updatedRun.usedWords, word] }
+    }
     const roomIndex = updatedRun.roomIndex
     const updatedRooms = updatedRun.rooms.map((r, i) =>
       i === roomIndex ? { ...r, completed: true } : r,

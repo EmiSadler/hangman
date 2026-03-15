@@ -2,6 +2,8 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import App from '../../App'
+import { buildRun } from '../../runState'
+import type { ThemeId } from '../../types'
 
 const mockGameResponse = {
   game_id: 'test-uuid',
@@ -256,6 +258,30 @@ describe('App', () => {
     await userEvent.click(screen.getByRole('button', { name: /leave/i }))
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
+    })
+  })
+
+  it('sends excluded_words in POST /api/game when resumed run has usedWords', async () => {
+    const savedRun = {
+      ...buildRun('berserker', ['space', 'swamp', 'desert'] as [ThemeId, ThemeId, ThemeId]),
+      status: 'in_progress' as const,
+      usedWords: ['cat', 'dog'],
+    }
+    localStorage.setItem('hangman_run', JSON.stringify(savedRun))
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockGameResponse,
+    })
+    vi.stubGlobal('fetch', mockFetch)
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalled()
+      const [, options] = mockFetch.mock.calls[0]
+      const body = JSON.parse(options.body)
+      expect(body.excluded_words).toEqual(['cat', 'dog'])
     })
   })
 

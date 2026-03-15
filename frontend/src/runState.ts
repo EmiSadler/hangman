@@ -60,6 +60,7 @@ export function buildRun(className: ClassName, floorThemes?: [ThemeId, ThemeId, 
     artifacts: [],
     sessionId: null,
     bonusDamage: 0,
+    usedWords: [],
     floorThemes: floorThemes ?? ['space', 'swamp', 'desert'],
   }
 }
@@ -80,6 +81,7 @@ export function loadRun(): RunState | null {
     if (!parsed.artifacts) parsed.artifacts = []
     if (parsed.sessionId === undefined) parsed.sessionId = null
     if (parsed.bonusDamage === undefined) parsed.bonusDamage = 0
+    if (!Array.isArray(parsed.usedWords)) parsed.usedWords = []
     if (!Array.isArray(parsed.floorThemes) || parsed.floorThemes.length !== 3) {
       parsed.floorThemes = pickFloorThemes()
     }

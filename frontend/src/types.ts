@@ -43,6 +43,7 @@ export interface RunState {
   artifacts: ArtifactId[]
   sessionId: string | null
   bonusDamage: number
+  usedWords: string[]
   floorThemes: [ThemeId, ThemeId, ThemeId]
 }
 
