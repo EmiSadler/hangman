@@ -53,13 +53,37 @@ describe('ShopArea', () => {
 
   it('buying an artifact deducts its price and adds it to artifacts', async () => {
     const onLeave = vi.fn()
-    // Give enough coins to afford anything, own nothing
     render(<ShopArea run={makeRun({ coins: 99, artifacts: [] })} onLeave={onLeave} />)
     const buyButtons = screen.getAllByRole('button', { name: /buy/i })
     await userEvent.click(buyButtons[0])
+    // Buy no longer exits the shop — click Leave to commit
+    await userEvent.click(screen.getByRole('button', { name: /leave/i }))
     expect(onLeave).toHaveBeenCalledOnce()
     const updatedRun = onLeave.mock.calls[0][0] as RunState
     expect(updatedRun.coins).toBeLessThan(99)
+    expect(updatedRun.artifacts.length).toBe(1)
+  })
+
+  it('buying an artifact does not call onLeave (shop stays open)', async () => {
+    const onLeave = vi.fn()
+    render(<ShopArea run={makeRun({ coins: 99, artifacts: [] })} onLeave={onLeave} />)
+    const buyButtons = screen.getAllByRole('button', { name: /buy/i })
+    await userEvent.click(buyButtons[0])
+    expect(onLeave).not.toHaveBeenCalled()
+  })
+
+  it('bought artifact disappears from stock and leave calls onLeave with updated run', async () => {
+    const onLeave = vi.fn()
+    render(<ShopArea run={makeRun({ coins: 99, artifacts: [] })} onLeave={onLeave} />)
+    const buyButtonsBefore = screen.getAllByRole('button', { name: /buy/i })
+    const countBefore = buyButtonsBefore.length
+    await userEvent.click(buyButtonsBefore[0])
+    // One fewer buy button in stock now
+    expect(screen.getAllByRole('button', { name: /buy/i })).toHaveLength(countBefore - 1)
+    // Leave commits the purchase
+    await userEvent.click(screen.getByRole('button', { name: /leave/i }))
+    expect(onLeave).toHaveBeenCalledOnce()
+    const updatedRun = onLeave.mock.calls[0][0] as RunState
     expect(updatedRun.artifacts.length).toBe(1)
   })
 })
