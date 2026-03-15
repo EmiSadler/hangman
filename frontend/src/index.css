@@ -1039,6 +1039,57 @@ button:disabled {
   color: var(--accent);
 }
 
+/* Shop swap / confirmation banners */
+.shop-area__swap-banner,
+.shop-area__confirm-banner {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.shop-area__confirm-banner p {
+  color: var(--fg);
+  margin-bottom: 0.5rem;
+}
+
+.shop-area__confirm-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn-confirm-swap {
+  padding: 0.35rem 0.9rem;
+  background: var(--wrong);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-confirm-swap:hover {
+  filter: brightness(1.15);
+}
+
+.btn-cancel-swap {
+  padding: 0.35rem 0.9rem;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-cancel-swap:hover {
+  color: var(--fg);
+  border-color: var(--fg);
+}
+
 /* ── Summoning Screen ───────────────────────────────────── */
 
 .summoning-screen {

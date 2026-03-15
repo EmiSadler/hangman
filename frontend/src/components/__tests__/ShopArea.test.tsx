@@ -9,6 +9,12 @@ function makeRun(overrides: Partial<RunState> = {}): RunState {
   return { ...buildRun('berserker'), ...overrides }
 }
 
+// 8 artifacts that fill the inventory limit
+const FULL_INVENTORY: ArtifactId[] = [
+  'vowel_seeker', 'crystal_ball', 'category_scroll', 'short_sword',
+  'blood_dagger', 'iron_shield', 'thick_skin', 'healing_salve',
+]
+
 describe('ShopArea', () => {
   it('renders shop heading', () => {
     render(<ShopArea run={makeRun()} onLeave={vi.fn()} />)
@@ -85,5 +91,55 @@ describe('ShopArea', () => {
     expect(onLeave).toHaveBeenCalledOnce()
     const updatedRun = onLeave.mock.calls[0][0] as RunState
     expect(updatedRun.artifacts.length).toBe(1)
+  })
+
+  it('shows swap banner when buying with a full inventory', async () => {
+    render(<ShopArea run={makeRun({ coins: 99, artifacts: FULL_INVENTORY })} onLeave={vi.fn()} />)
+    const swapButtons = screen.getAllByRole('button', { name: /swap/i })
+    await userEvent.click(swapButtons[0])
+    expect(screen.getByText(/inventory full/i)).toBeInTheDocument()
+  })
+
+  it('cancel in swap mode hides the swap banner', async () => {
+    render(<ShopArea run={makeRun({ coins: 99, artifacts: FULL_INVENTORY })} onLeave={vi.fn()} />)
+    await userEvent.click(screen.getAllByRole('button', { name: /swap/i })[0])
+    await userEvent.click(screen.getByRole('button', { name: /cancel/i }))
+    expect(screen.queryByText(/inventory full/i)).not.toBeInTheDocument()
+  })
+
+  it('clicking remove in swap mode shows confirmation banner', async () => {
+    render(<ShopArea run={makeRun({ coins: 99, artifacts: FULL_INVENTORY })} onLeave={vi.fn()} />)
+    // Enter swap mode
+    await userEvent.click(screen.getAllByRole('button', { name: /swap/i })[0])
+    // Click the first Remove button in the artifact shelf
+    await userEvent.click(screen.getAllByRole('button', { name: /remove/i })[0])
+    expect(screen.getByText(/this cannot be undone/i)).toBeInTheDocument()
+  })
+
+  it('cancel in confirmation returns to swap mode', async () => {
+    render(<ShopArea run={makeRun({ coins: 99, artifacts: FULL_INVENTORY })} onLeave={vi.fn()} />)
+    await userEvent.click(screen.getAllByRole('button', { name: /swap/i })[0])
+    await userEvent.click(screen.getAllByRole('button', { name: /remove/i })[0])
+    // Cancel confirmation — should go back to swap banner, not all the way out
+    await userEvent.click(screen.getByRole('button', { name: /cancel/i }))
+    expect(screen.getByText(/inventory full/i)).toBeInTheDocument()
+    expect(screen.queryByText(/this cannot be undone/i)).not.toBeInTheDocument()
+  })
+
+  it('confirming swap replaces item, deducts coins, and stays in shop', async () => {
+    const onLeave = vi.fn()
+    render(<ShopArea run={makeRun({ coins: 99, artifacts: FULL_INVENTORY })} onLeave={onLeave} />)
+    await userEvent.click(screen.getAllByRole('button', { name: /swap/i })[0])
+    await userEvent.click(screen.getAllByRole('button', { name: /remove/i })[0])
+    await userEvent.click(screen.getByRole('button', { name: /confirm/i }))
+    // Shop still open — Leave to commit
+    expect(onLeave).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: /leave/i }))
+    expect(onLeave).toHaveBeenCalledOnce()
+    const updatedRun = onLeave.mock.calls[0][0] as RunState
+    // Inventory still 8 (one swapped)
+    expect(updatedRun.artifacts).toHaveLength(8)
+    // Coins decreased
+    expect(updatedRun.coins).toBeLessThan(99)
   })
 })
