@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { RunState, ArtifactId } from '../types'
 import { sampleArtifacts, type Artifact, ARTIFACTS } from '../artifacts'
-import { MAX_INVENTORY } from '../runState'
+import { POTIONS, type Potion } from '../potions'
+import { MAX_INVENTORY, MAX_POTION_SLOTS } from '../runState'
 import ArtifactShelf from './ArtifactShelf'
 
 interface Props {
@@ -46,6 +47,14 @@ export default function ShopArea({ run, onLeave }: Props) {
     setPendingRemove(null)
   }
 
+  function handleBuyPotion(potion: Potion) {
+    setLocalRun(prev => ({
+      ...prev,
+      coins: prev.coins - potion.price,
+      potions: [...prev.potions, potion.id],
+    }))
+  }
+
   return (
     <div className="shop-area">
       <h2>Shop</h2>
@@ -84,6 +93,29 @@ export default function ShopArea({ run, onLeave }: Props) {
             </button>
           </div>
         ))}
+      </div>
+      <div className="shop-area__potions">
+        <h3>Potions</h3>
+        {(Object.values(POTIONS) as Potion[]).map(potion => (
+          <div key={potion.id} className="shop-area__potion-item">
+            <span className="shop-area__item-info">
+              {potion.emoji} <strong>{potion.name}</strong> — {potion.description}
+            </span>
+            <button
+              className="btn-buy-potion"
+              aria-label={`Buy ${potion.name}`}
+              onClick={() => handleBuyPotion(potion)}
+              disabled={localRun.coins < potion.price || localRun.potions.length >= MAX_POTION_SLOTS}
+            >
+              Buy ({potion.price} coins)
+            </button>
+          </div>
+        ))}
+        {localRun.potions.length > 0 && (
+          <p className="shop-area__potion-count">
+            Pouch: {localRun.potions.length}/{MAX_POTION_SLOTS}
+          </p>
+        )}
       </div>
       <button className="btn-leave" onClick={() => onLeave(localRun)}>Leave</button>
       <ArtifactShelf

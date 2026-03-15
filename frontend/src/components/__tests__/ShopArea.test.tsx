@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import ShopArea from '../ShopArea'
 import { buildRun } from '../../runState'
-import type { RunState, ArtifactId } from '../../types'
+import type { RunState, ArtifactId, PotionId } from '../../types'
 
 function makeRun(overrides: Partial<RunState> = {}): RunState {
   return { ...buildRun('berserker'), ...overrides }
@@ -27,8 +27,9 @@ describe('ShopArea', () => {
   })
 
   it('renders 4 artifact options', () => {
-    render(<ShopArea run={makeRun({ coins: 99 })} onLeave={vi.fn()} />)
-    expect(screen.getAllByRole('button', { name: /buy|swap/i }).length).toBe(4)
+    const { container } = render(<ShopArea run={makeRun({ coins: 99 })} onLeave={vi.fn()} />)
+    const stockSection = container.querySelector('.shop-area__stock')!
+    expect(stockSection.querySelectorAll('button').length).toBe(4)
   })
 
   it('buy button is disabled when player cannot afford the artifact', () => {
@@ -53,8 +54,9 @@ describe('ShopArea', () => {
       'short_sword', 'blood_dagger', 'iron_shield', 'thick_skin',
       'chainmail', 'healing_salve', 'gold_tooth', 'battle_scar', 'shadow_cloak',
     ]
-    render(<ShopArea run={makeRun({ coins: 99, artifacts: nearlyFull })} onLeave={vi.fn()} />)
-    expect(screen.getAllByRole('button', { name: /buy|swap/i }).length).toBe(2)
+    const { container } = render(<ShopArea run={makeRun({ coins: 99, artifacts: nearlyFull })} onLeave={vi.fn()} />)
+    const stockSection = container.querySelector('.shop-area__stock')!
+    expect(stockSection.querySelectorAll('button').length).toBe(2)
   })
 
   it('buying an artifact deducts its price and adds it to artifacts', async () => {
@@ -142,5 +144,38 @@ describe('ShopArea', () => {
     expect(updatedRun.artifacts).not.toContain('vowel_seeker')
     // Coins decreased
     expect(updatedRun.coins).toBeLessThan(99)
+  })
+
+  it('renders health potion for sale', () => {
+    render(<ShopArea run={makeRun({ coins: 20 })} onLeave={vi.fn()} />)
+    expect(screen.getByText(/health potion/i)).toBeInTheDocument()
+  })
+
+  it('buy potion button is disabled when player cannot afford it', () => {
+    render(<ShopArea run={makeRun({ coins: 0 })} onLeave={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /buy.*health potion/i })).toBeDisabled()
+  })
+
+  it('buy potion button is disabled when pouch is full', () => {
+    const fullPotions: PotionId[] = ['health_potion', 'health_potion', 'health_potion', 'health_potion']
+    render(<ShopArea run={makeRun({ coins: 99, potions: fullPotions })} onLeave={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /buy.*health potion/i })).toBeDisabled()
+  })
+
+  it('buying a potion deducts coins and adds it to potions', async () => {
+    const onLeave = vi.fn()
+    render(<ShopArea run={makeRun({ coins: 20, potions: [] })} onLeave={onLeave} />)
+    await userEvent.click(screen.getByRole('button', { name: /buy.*health potion/i }))
+    await userEvent.click(screen.getByRole('button', { name: /leave/i }))
+    const updatedRun = onLeave.mock.calls[0][0] as RunState
+    expect(updatedRun.coins).toBe(10)
+    expect(updatedRun.potions).toEqual(['health_potion'])
+  })
+
+  it('buy potion does not call onLeave (shop stays open)', async () => {
+    const onLeave = vi.fn()
+    render(<ShopArea run={makeRun({ coins: 20, potions: [] })} onLeave={onLeave} />)
+    await userEvent.click(screen.getByRole('button', { name: /buy.*health potion/i }))
+    expect(onLeave).not.toHaveBeenCalled()
   })
 })
