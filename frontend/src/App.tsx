@@ -110,15 +110,9 @@ export default function App() {
 
   async function handleStartRun(className: ClassName) {
     setStarting(true)
+    setError(null)
     const newRun = buildRun(className, pickFloorThemes())
-    let sessionId: string | null = null
-    try {
-      sessionId = await createSession()
-    } catch {
-      setStarting(false)
-      setError("Couldn't reach the server. Please try again.")
-      return
-    }
+    const sessionId = await createSession()
     if (sessionId === null) {
       setStarting(false)
       setError("Couldn't reach the server. Please try again.")
@@ -283,7 +277,7 @@ export default function App() {
         <div className="app__error-block">
           <p className="app__error">{error}</p>
           {phase === 'idle' && (
-            <button className="btn btn--secondary" onClick={() => setError(null)}>Try again</button>
+            <button className="btn-try-again" onClick={() => setError(null)}>Try again</button>
           )}
         </div>
       )}
