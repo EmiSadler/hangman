@@ -111,15 +111,15 @@ describe('ShopArea', () => {
     render(<ShopArea run={makeRun({ coins: 99, artifacts: FULL_INVENTORY })} onLeave={vi.fn()} />)
     // Enter swap mode
     await userEvent.click(screen.getAllByRole('button', { name: /swap/i })[0])
-    // Click the first Remove button in the artifact shelf
-    await userEvent.click(screen.getAllByRole('button', { name: /remove/i })[0])
+    // Click Remove on the first artifact (vowel_seeker) in the shelf
+    await userEvent.click(screen.getByRole('button', { name: /remove vowel seeker/i }))
     expect(screen.getByText(/this cannot be undone/i)).toBeInTheDocument()
   })
 
   it('cancel in confirmation returns to swap mode', async () => {
     render(<ShopArea run={makeRun({ coins: 99, artifacts: FULL_INVENTORY })} onLeave={vi.fn()} />)
     await userEvent.click(screen.getAllByRole('button', { name: /swap/i })[0])
-    await userEvent.click(screen.getAllByRole('button', { name: /remove/i })[0])
+    await userEvent.click(screen.getByRole('button', { name: /remove vowel seeker/i }))
     // Cancel confirmation — should go back to swap banner, not all the way out
     await userEvent.click(screen.getByRole('button', { name: /cancel/i }))
     expect(screen.getByText(/inventory full/i)).toBeInTheDocument()
@@ -130,15 +130,16 @@ describe('ShopArea', () => {
     const onLeave = vi.fn()
     render(<ShopArea run={makeRun({ coins: 99, artifacts: FULL_INVENTORY })} onLeave={onLeave} />)
     await userEvent.click(screen.getAllByRole('button', { name: /swap/i })[0])
-    await userEvent.click(screen.getAllByRole('button', { name: /remove/i })[0])
+    await userEvent.click(screen.getByRole('button', { name: /remove vowel seeker/i }))
     await userEvent.click(screen.getByRole('button', { name: /confirm/i }))
     // Shop still open — Leave to commit
     expect(onLeave).not.toHaveBeenCalled()
     await userEvent.click(screen.getByRole('button', { name: /leave/i }))
     expect(onLeave).toHaveBeenCalledOnce()
     const updatedRun = onLeave.mock.calls[0][0] as RunState
-    // Inventory still 8 (one swapped)
+    // Inventory still 8 (one swapped), vowel_seeker removed
     expect(updatedRun.artifacts).toHaveLength(8)
+    expect(updatedRun.artifacts).not.toContain('vowel_seeker')
     // Coins decreased
     expect(updatedRun.coins).toBeLessThan(99)
   })
