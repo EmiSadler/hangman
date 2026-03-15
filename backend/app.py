@@ -31,12 +31,13 @@ def create_game():
     room_type = data.get("room_type", "enemy")
     hint = bool(data.get("hint", False))
     session_id = data.get("session_id")
+    excluded_words = data.get("excluded_words") or []
     try:
         if session_id and session_id in sessions:
             game = new_game_from_session(sessions[session_id], room_type=room_type, hint=hint)
         else:
             # Unknown/missing session_id: fall back to random word selection (e.g. after server restart)
-            game = new_game(room_type=room_type, hint=hint)
+            game = new_game(room_type=room_type, hint=hint, excluded_words=excluded_words)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     game_id = str(uuid.uuid4())

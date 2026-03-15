@@ -196,23 +196,21 @@ def test_solve_word_after_game_over_raises():
 
 # --- create_session ---
 
-def test_create_session_has_enemy_and_boss_keys():
+def test_create_session_has_pool_key():
     words = [('cat', 'animals'), ('elephant', 'animals'), ('butterfly', 'insects')]
     session = create_session(words)
-    assert 'enemy' in session
-    assert 'boss' in session
+    assert 'pool' in session
 
-def test_create_session_enemy_pool_contains_all_words():
+def test_create_session_pool_contains_all_words():
     words = [('cat', 'animals'), ('elephant', 'animals')]
     session = create_session(words)
-    assert len(session['enemy']) == 2
+    assert len(session['pool']) == 2
 
-def test_create_session_boss_pool_contains_only_long_words():
+def test_create_session_single_unified_pool():
     words = [('cat', 'animals'), ('elephant', 'animals'), ('butterfly', 'insects')]
     session = create_session(words)
-    # 'elephant' (8) and 'butterfly' (9) qualify; 'cat' (3) does not
-    assert len(session['boss']) == 2
-    assert all(len(w) >= 8 for w, _ in session['boss'])
+    assert 'enemy' not in session
+    assert 'boss' not in session
 
 # --- new_game_from_session ---
 
@@ -226,9 +224,9 @@ def test_new_game_from_session_returns_valid_game():
 def test_new_game_from_session_pops_word_from_pool():
     words = [('cat', 'animals'), ('dog', 'animals')]
     session = create_session(words)
-    before = len(session['enemy'])
+    before = len(session['pool'])
     new_game_from_session(session, room_type='enemy')
-    assert len(session['enemy']) == before - 1
+    assert len(session['pool']) == before - 1
 
 def test_new_game_from_session_no_repeats_until_pool_exhausted():
     words = [('cat', 'animals'), ('dog', 'animals'), ('fox', 'animals')]
@@ -243,8 +241,7 @@ def test_new_game_from_session_reshuffles_when_pool_empty():
     words = [('cat', 'animals')]
     session = create_session(words)
     new_game_from_session(session, room_type='enemy')
-    assert len(session['enemy']) == 0
-    # pool was exhausted; next call should reshuffle and succeed
+    assert len(session['pool']) == 0
     game = new_game_from_session(session, room_type='enemy')
     assert game['word'] == 'cat'
 
@@ -260,3 +257,19 @@ def test_new_game_from_session_hint_reveals_one_letter():
     game = new_game_from_session(session, room_type='enemy', hint=True)
     assert len(game['guessed_letters']) == 1
     assert game['guessed_letters'][0] in 'castle'
+
+def test_new_game_from_session_boss_room_returns_long_word():
+    words = [('cat', 'animals'), ('elephant', 'animals'), ('butterfly', 'insects')]
+    session = create_session(words)
+    game = new_game_from_session(session, room_type='boss')
+    assert len(game['word']) >= 8
+
+def test_select_word_excludes_specified_words():
+    word1, _ = select_word('enemy')
+    word2, _ = select_word('enemy', excluded_words=[word1])
+    assert word2 != word1
+
+def test_new_game_excludes_specified_words():
+    first = new_game(room_type='enemy')
+    second = new_game(room_type='enemy', excluded_words=[first['word']])
+    assert second['word'] != first['word']

@@ -19,7 +19,7 @@ def load_words() -> list[tuple[str, str]]:
         _WORDS = result
     return _WORDS
 
-def select_word(room_type: str = 'enemy') -> tuple[str, str]:
+def select_word(room_type: str = 'enemy', excluded_words: list[str] | None = None) -> tuple[str, str]:
     if room_type not in ('enemy', 'boss'):
         raise ValueError(f"Invalid room_type: {room_type!r}")
     words = load_words()
@@ -27,13 +27,17 @@ def select_word(room_type: str = 'enemy') -> tuple[str, str]:
         words = [(w, c) for w, c in words if len(w) >= 8]
         if not words:
             raise ValueError("No words available for room_type='boss'")
+    if excluded_words:
+        filtered = [(w, c) for w, c in words if w not in excluded_words]
+        if filtered:
+            words = filtered
     return random.choice(words)
 
 def mask_word(word: str, guessed_letters: list[str]) -> str:
     return " ".join(c if c in guessed_letters else "_" for c in word)
 
-def new_game(room_type: str = 'enemy', hint: bool = False) -> dict:
-    word, category = select_word(room_type)
+def new_game(room_type: str = 'enemy', hint: bool = False, excluded_words: list[str] | None = None) -> dict:
+    word, category = select_word(room_type, excluded_words)
     guessed: list[str] = []
     if hint:
         guessed = [random.choice(list(word))]
@@ -46,27 +50,33 @@ def new_game(room_type: str = 'enemy', hint: bool = False) -> dict:
     }
 
 def create_session(words: list[tuple[str, str]]) -> dict:
-    enemy_pool = list(words)
-    boss_pool = [(w, c) for w, c in words if len(w) >= 8]
-    random.shuffle(enemy_pool)
-    random.shuffle(boss_pool)
+    pool = list(words)
+    random.shuffle(pool)
     return {
-        'enemy': enemy_pool,
-        'boss': boss_pool,
+        'pool': pool,
         '_all_words': list(words),
     }
-
 
 def new_game_from_session(session: dict, room_type: str = 'enemy', hint: bool = False) -> dict:
     if room_type not in ('enemy', 'boss'):
         raise ValueError(f"Invalid room_type: {room_type!r}")
-    pool = session[room_type]
-    if not pool:
-        all_words = session.get('_all_words') or load_words()
-        refill = list(all_words) if room_type == 'enemy' else [(w, c) for w, c in all_words if len(w) >= 8]
-        random.shuffle(refill)
-        pool.extend(refill)
-    word, category = pool.pop()
+    pool = session['pool']
+    if room_type == 'boss':
+        idx = next((i for i, (w, _) in enumerate(pool) if len(w) >= 8), None)
+        if idx is None:
+            all_words = session.get('_all_words') or load_words()
+            refill = [(w, c) for w, c in all_words if len(w) >= 8]
+            random.shuffle(refill)
+            pool.extend(refill)
+            idx = next(i for i, (w, _) in enumerate(pool) if len(w) >= 8)
+        word, category = pool.pop(idx)
+    else:
+        if not pool:
+            all_words = session.get('_all_words') or load_words()
+            refill = list(all_words)
+            random.shuffle(refill)
+            pool.extend(refill)
+        word, category = pool.pop()
     guessed: list[str] = []
     if hint:
         guessed = [random.choice(list(word))]
