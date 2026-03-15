@@ -5,9 +5,10 @@ import { ARTIFACTS } from '../artifacts'
 interface Props {
   artifacts: ArtifactId[]
   vertical?: boolean
+  onRemove?: (id: ArtifactId) => void
 }
 
-export default function ArtifactShelf({ artifacts, vertical = false }: Props) {
+export default function ArtifactShelf({ artifacts, vertical = false, onRemove }: Props) {
   const [tooltip, setTooltip] = useState<ArtifactId | null>(null)
 
   if (artifacts.length === 0) return null
@@ -34,6 +35,15 @@ export default function ArtifactShelf({ artifacts, vertical = false }: Props) {
                 <strong>{art.name}</strong>
                 <p>{art.description}</p>
               </div>
+            )}
+            {onRemove && (
+              <button
+                className="artifact-shelf__remove"
+                onClick={() => onRemove(id)}
+                aria-label={`Remove ${art.name}`}
+              >
+                Remove
+              </button>
             )}
           </div>
         )

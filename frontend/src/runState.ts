@@ -14,6 +14,7 @@ export const COINS_PER_ENEMY = 5
 export const COINS_PER_BOSS = 20
 export const HEAL_AMOUNT = 5
 export const WRONG_SOLVE_PENALTY = 5
+export const MAX_INVENTORY = 8
 
 export const RUN_KEY = 'hangman_run'
 export const SCORE_KEY = 'hangman_score'
