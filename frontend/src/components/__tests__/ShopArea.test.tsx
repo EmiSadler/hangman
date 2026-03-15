@@ -22,7 +22,7 @@ describe('ShopArea', () => {
 
   it('renders 4 artifact options', () => {
     render(<ShopArea run={makeRun({ coins: 99 })} onLeave={vi.fn()} />)
-    expect(screen.getAllByRole('button', { name: /buy/i }).length).toBe(4)
+    expect(screen.getAllByRole('button', { name: /buy|swap/i }).length).toBe(4)
   })
 
   it('buy button is disabled when player cannot afford the artifact', () => {
@@ -48,7 +48,7 @@ describe('ShopArea', () => {
       'chainmail', 'healing_salve', 'gold_tooth', 'battle_scar', 'shadow_cloak',
     ]
     render(<ShopArea run={makeRun({ coins: 99, artifacts: nearlyFull })} onLeave={vi.fn()} />)
-    expect(screen.getAllByRole('button', { name: /buy/i }).length).toBe(2)
+    expect(screen.getAllByRole('button', { name: /buy|swap/i }).length).toBe(2)
   })
 
   it('buying an artifact deducts its price and adds it to artifacts', async () => {

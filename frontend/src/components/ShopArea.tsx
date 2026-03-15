@@ -39,6 +39,7 @@ export default function ShopArea({ run, onLeave }: Props) {
       coins: localRun.coins - pendingSwap.price,
       artifacts: [...localRun.artifacts.filter(id => id !== pendingRemove), pendingSwap.id],
     }
+    // chainmail's +5 maxHp is permanent — swapping it out does not reverse the bonus
     if (pendingSwap.id === 'chainmail') updated = { ...updated, maxHp: updated.maxHp + 5, hp: updated.hp + 5 }
     setLocalRun(updated)
     setPendingSwap(null)
@@ -79,7 +80,7 @@ export default function ShopArea({ run, onLeave }: Props) {
               onClick={() => handleBuy(art)}
               disabled={localRun.coins < art.price}
             >
-              Buy ({art.price} coins)
+              {localRun.artifacts.length >= MAX_INVENTORY ? 'Swap' : 'Buy'} ({art.price} coins)
             </button>
           </div>
         ))}
