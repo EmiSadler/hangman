@@ -720,7 +720,7 @@ button:disabled {
   visibility: hidden;
 }
 
-.btn-ability[data-tooltip]:hover::after {
+.btn-ability:not(:disabled)[data-tooltip]:hover::after {
   visibility: visible;
 }
 
