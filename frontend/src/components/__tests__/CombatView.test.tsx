@@ -838,4 +838,29 @@ describe('CombatView', () => {
       expect(sprite).toHaveClass('flash-hit')
     })
   })
+
+describe('ATK stats', () => {
+  it('renders player ATK and enemy ATK', () => {
+    const run = buildRun('berserker')
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // BASE_DAMAGE_PER_HIT=2, rage=0, bonusDamage=0, no short_sword → player ATK 2
+    // DAMAGE_PER_WRONG=2, no thick_skin, not rogue → enemy ATK 2
+    const atkEls = screen.getAllByText(/⚔\s*2/)
+    expect(atkEls.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('player ATK increases with bonusDamage', () => {
+    const run = { ...buildRun('berserker'), bonusDamage: 3 }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // BASE(2) + bonusDamage(3) = 5
+    expect(screen.getByText(/⚔\s*5/)).toBeInTheDocument()
+  })
+
+  it('enemy ATK decreases with thick_skin artifact', () => {
+    const run = { ...buildRun('berserker'), artifacts: ['thick_skin' as ArtifactId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // DAMAGE_PER_WRONG(2) - thick_skin(1) = 1
+    expect(screen.getByText(/⚔\s*1/)).toBeInTheDocument()
+  })
+})
 })

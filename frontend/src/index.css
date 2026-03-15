@@ -1401,3 +1401,15 @@ button:disabled {
 .btn-try-again:hover {
   opacity: 1;
 }
+
+/* ATK stat lines */
+.combat-view__atk {
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #9a9a9a);
+}
+
+.combat-view__enemy-atk-label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #9a9a9a);
+  text-align: center;
+}

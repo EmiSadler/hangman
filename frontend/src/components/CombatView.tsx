@@ -518,6 +518,23 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     ? `${abilityName} (used)`
     : abilityName
 
+  function calcPlayerAtk(): number {
+    let dmg = BASE_DAMAGE_PER_HIT
+    if (run.className === 'berserker') dmg += rage
+    if (run.className === 'rogue') dmg += combo
+    if (run.className === 'archivist' && hiddenCount >= 5) dmg += 1
+    dmg += displayRun.bonusDamage
+    if (displayRun.artifacts.includes('short_sword')) dmg += 1
+    return dmg
+  }
+
+  function calcEnemyAtk(): number {
+    let dmg = DAMAGE_PER_WRONG
+    if (run.className === 'rogue') dmg += 1
+    if (displayRun.artifacts.includes('thick_skin')) dmg = Math.max(1, dmg - 1)
+    return dmg
+  }
+
   return (
     <div className="combat-view" data-theme={theme}>
       <p className="combat-view__floor">Floor {floor}</p>
@@ -548,6 +565,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
               HP: {displayRun.hp} / {displayRun.maxHp}
               {displayRun.shield > 0 && <span className="combat-view__shield"> 🛡 {displayRun.shield}</span>}
             </span>
+            <span className="combat-view__atk">⚔ {calcPlayerAtk()}</span>
             <span className="combat-view__coins">Coins: {displayRun.coins}</span>
           </div>
           {!combatDone && !enemyDead && (
@@ -591,6 +609,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           <div className="combat-view__enemy-hp-label">
             Enemy HP: {Math.max(0, currentEnemyHp)} / {maxEnemyHp}
           </div>
+          <div className="combat-view__enemy-atk-label">⚔ {calcEnemyAtk()}</div>
         </div>
       </div>
       {run.className === 'archivist' && (
