@@ -176,14 +176,15 @@ export default function App() {
       return
     }
 
-    // Roll rewards
+    // Roll rewards (independent)
     const isBoss = updatedRun.rooms[roomIndex].type === 'boss'
-    const coinsEarned = (isBoss || Math.random() < REWARD_GOLD_ENEMY_CHANCE)
-      ? (isBoss ? COINS_BOSS_REWARD : COINS_ENEMY_REWARD)
-      : 0
+    const coinsEarned = isBoss
+      ? COINS_BOSS_REWARD
+      : (Math.random() < REWARD_GOLD_ENEMY_CHANCE ? COINS_ENEMY_REWARD : 0)
     const potionChance = isBoss ? REWARD_POTION_BOSS_CHANCE : REWARD_POTION_ENEMY_CHANCE
     const artifactChance = isBoss ? REWARD_ARTIFACT_BOSS_CHANCE : REWARD_ARTIFACT_ENEMY_CHANCE
     const pendingPotion: PotionId | null = Math.random() < potionChance ? sampleRandomPotion() : null
+    // sampleArtifacts shuffles internally via Math.random; roll the artifact chance after
     const artifactPool = sampleArtifacts(runWithRooms.artifacts, 1)
     const pendingArtifact: ArtifactId | null = artifactPool.length > 0 && Math.random() < artifactChance
       ? artifactPool[0].id
