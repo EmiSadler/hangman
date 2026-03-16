@@ -185,8 +185,8 @@ describe('ShopArea', () => {
   })
 
   it('shows exactly 3 potions in shop (health + 2 random)', () => {
-    render(<ShopArea run={makeRun({ coins: 99 })} onLeave={vi.fn()} />)
-    const potionSection = document.querySelector('.shop-area__potions')!
+    const { container } = render(<ShopArea run={makeRun({ coins: 99 })} onLeave={vi.fn()} />)
+    const potionSection = container.querySelector('.shop-area__potions')!
     const buyButtons = potionSection.querySelectorAll('button[aria-label^="Buy"]')
     expect(buyButtons).toHaveLength(3)
   })

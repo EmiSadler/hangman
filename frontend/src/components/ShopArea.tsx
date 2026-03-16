@@ -18,8 +18,11 @@ export default function ShopArea({ run, onLeave }: Props) {
   const [pendingRemove, setPendingRemove] = useState<ArtifactId | null>(null)
   const [potionStock] = useState<Potion[]>(() => {
     const extras: PotionId[] = ['strength_potion', 'shielding_potion', 'archivists_brew']
-    const shuffled = [...extras].sort(() => Math.random() - 0.5)
-    return [POTIONS['health_potion'], ...shuffled.slice(0, 2).map(id => POTIONS[id])]
+    for (let i = extras.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[extras[i], extras[j]] = [extras[j], extras[i]]
+    }
+    return [POTIONS['health_potion'], ...extras.slice(0, 2).map(id => POTIONS[id])]
   })
 
   const displayStock = stock.filter(art => !localRun.artifacts.includes(art.id))
