@@ -534,6 +534,35 @@ describe('CombatView', () => {
     expect(screen.queryByRole('button', { name: /health potion/i })).not.toBeInTheDocument()
   })
 
+  it('Potion of Strength deals +2 damage for the battle', async () => {
+    // word='cat', floor=1 → enemy HP=6. Berserker base dmg=2, +strength bonus 2 → 4 total.
+    // Guess 'a' (1 occ): 4 dmg. HP: 6→2
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ masked_word: '_ a _', correct: true, guessed_letters: ['a'], status: 'in_progress', occurrences: 1 }),
+    }))
+    const run = { ...buildRun('berserker'), potions: ['strength_potion' as PotionId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /potion of strength/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => expect(screen.getByText(/2 \/ 6/)).toBeInTheDocument())
+  })
+
+  it('Potion of Shielding gives 5 shield', async () => {
+    const run = { ...buildRun('berserker'), potions: ['shielding_potion' as PotionId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /potion of shielding/i }))
+    expect(screen.getByText(/🛡 5/)).toBeInTheDocument()
+  })
+
+  it("Archivist's Brew reveals the word category", async () => {
+    const run = { ...buildRun('berserker'), potions: ['archivists_brew' as PotionId] }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    // Berserker without category_scroll should not see category before using brew
+    expect(screen.queryByText(/animals/i)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /archivist.*brew/i }))
+    expect(screen.getByText(/animals/i)).toBeInTheDocument()
+  })
+
   it('bonusDamage adds flat damage per correct guess', async () => {
     // word='catch' (5 letters), floor=1 → maxEnemyHp = 5*1*2 = 10
     // berserker BASE_DAMAGE=2, no rage, bonusDamage=2 → dmg per occ = 2

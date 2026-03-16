@@ -3,7 +3,7 @@ import type { GameState, Room, RunState, ClassName, ArtifactId, ThemeId, PotionI
 import {
   DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT,
   COINS_PER_ENEMY, COINS_PER_BOSS, enemyHp,
-  POTION_HEAL_AMOUNT, WRONG_SOLVE_PENALTY,
+  POTION_HEAL_AMOUNT, POTION_STRENGTH_BONUS, POTION_SHIELD_AMOUNT, WRONG_SOLVE_PENALTY,
 } from '../runState'
 import { POTIONS } from '../potions'
 import GameBoard from './GameBoard'
@@ -179,6 +179,8 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   const [voidLetters, setVoidLetters] = useState<string[]>([])
   const [mudLetters, setMudLetters] = useState<string[]>([])
   const [vinedLetters, setVinedLetters] = useState<string[]>([])
+  const [potionDamageBonus, setPotionDamageBonus] = useState(0)
+  const [revealedCategory, setRevealedCategory] = useState(false)
   const [castMessage, setCastMessage] = useState<string | null>(null)
   const enemyHpRef = useRef(maxEnemyHp)
   const [currentGame, setCurrentGame] = useState<GameState>(initialState)
@@ -281,7 +283,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       const currentCombo = combo
       let dmg = calcDamageDealt(
         letter, occurrences, run.className, rage, currentCombo,
-        currentHidden, isAbilityHit, run.artifacts, run.bonusDamage,
+        currentHidden, isAbilityHit, run.artifacts, run.bonusDamage + potionDamageBonus,
       )
       if (bloodDaggerReady && run.artifacts.includes('blood_dagger')) {
         dmg += 2
@@ -366,7 +368,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     if (hiddenRemaining > 0) {
       let dmg = hiddenRemaining * BASE_DAMAGE_PER_HIT
       if (run.artifacts.includes('short_sword')) dmg += 1
-      dmg += run.bonusDamage
+      dmg += run.bonusDamage + potionDamageBonus
       const newEnemyHp = Math.max(0, enemyHpRef.current - dmg)
       enemyHpRef.current = newEnemyHp
       setCurrentEnemyHp(newEnemyHp)
@@ -456,13 +458,26 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
       if (idx === -1) return prev
       const newPotions = [...prev.potions]
       newPotions.splice(idx, 1)
-      return {
-        ...prev,
-        hp: Math.min(prev.maxHp, prev.hp + POTION_HEAL_AMOUNT),
-        potions: newPotions,
+      switch (potionId) {
+        case 'health_potion':
+          return { ...prev, hp: Math.min(prev.maxHp, prev.hp + POTION_HEAL_AMOUNT), potions: newPotions }
+        case 'shielding_potion':
+          return { ...prev, shield: prev.shield + POTION_SHIELD_AMOUNT, potions: newPotions }
+        default:
+          return { ...prev, potions: newPotions }
       }
     })
-    pushPopup(POTION_HEAL_AMOUNT, 'player', true)
+    switch (potionId) {
+      case 'health_potion':
+        pushPopup(POTION_HEAL_AMOUNT, 'player', true)
+        break
+      case 'strength_potion':
+        setPotionDamageBonus(prev => prev + POTION_STRENGTH_BONUS)
+        break
+      case 'archivists_brew':
+        setRevealedCategory(true)
+        break
+    }
   }
 
   function handleWrongSolve() {
@@ -547,7 +562,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     if (run.className === 'berserker') dmg += rage
     if (run.className === 'rogue') dmg += combo
     if (run.className === 'archivist' && hiddenCount >= 5) dmg += 1
-    dmg += displayRun.bonusDamage
+    dmg += displayRun.bonusDamage + potionDamageBonus
     if (displayRun.artifacts.includes('short_sword')) dmg += 1
     return dmg
   }
@@ -612,7 +627,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
                     className="btn-potion"
                     onClick={() => handleUsePotion(potionId)}
                   >
-                    {potion.emoji} {potion.name} (+{POTION_HEAL_AMOUNT} HP)
+                    {potion.emoji} {potion.name}
                   </button>
                 )
               })}
@@ -650,7 +665,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           <span>{currentGame.word.length} letters</span>
         </div>
       )}
-      {(vowelCount !== null || crystalBallLetter !== null || showCategoryScroll) && (
+      {(vowelCount !== null || crystalBallLetter !== null || showCategoryScroll || revealedCategory) && (
         <div className="combat-view__artifact-info">
           {vowelCount !== null && (
             <span>🔍 {vowelCount} {vowelCount === 1 ? 'vowel' : 'vowels'} in this word</span>
@@ -658,7 +673,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           {crystalBallLetter !== null && (
             <span>🔮 {crystalBallLetter.toUpperCase()} is in this word</span>
           )}
-          {showCategoryScroll && (
+          {(showCategoryScroll || revealedCategory) && (
             <span>📜 Category: {currentGame.category}</span>
           )}
         </div>

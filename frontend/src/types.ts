@@ -9,7 +9,7 @@ export type ArtifactId =
   | 'healing_salve' | 'gold_tooth'
   | 'battle_scar' | 'shadow_cloak' | 'mana_crystal' | 'ancient_codex'
 
-export type PotionId = 'health_potion'
+export type PotionId = 'health_potion' | 'strength_potion' | 'shielding_potion' | 'archivists_brew'
 
 export type ThemeId = 'space' | 'swamp' | 'desert' | 'jungle'
 
