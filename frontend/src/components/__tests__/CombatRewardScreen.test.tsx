@@ -15,7 +15,7 @@ describe('CombatRewardScreen', () => {
     expect(screen.getByText(/\+10 coins/i)).toBeInTheDocument()
   })
 
-  it('does not show coins line when coinsEarned is 0', () => {
+  it('shows no coins line when coinsEarned is 0', () => {
     render(<CombatRewardScreen run={makeRun()} coinsEarned={0} pendingPotion={null} pendingArtifact={null} onLeave={vi.fn()} />)
     expect(screen.queryByText(/coins/i)).not.toBeInTheDocument()
   })
@@ -79,5 +79,33 @@ describe('CombatRewardScreen', () => {
     render(<CombatRewardScreen run={run} coinsEarned={0} pendingPotion={'health_potion' as PotionId} pendingArtifact={null} onLeave={onLeave} />)
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
     expect(onLeave).toHaveBeenCalledWith(expect.objectContaining({ potions: ['health_potion'] }))
+  })
+
+  it('onLeave receives run with swapped potion when swap is confirmed', async () => {
+    const onLeave = vi.fn()
+    const run = makeRun({ potions: ['health_potion', 'health_potion', 'health_potion', 'health_potion'] as PotionId[] })
+    render(<CombatRewardScreen run={run} coinsEarned={0} pendingPotion={'strength_potion' as PotionId} pendingArtifact={null} onLeave={onLeave} />)
+    await userEvent.click(screen.getAllByRole('button', { name: /replace/i })[0])
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+    expect(onLeave).toHaveBeenCalledWith(
+      expect.objectContaining({ potions: expect.arrayContaining(['strength_potion']) })
+    )
+  })
+
+  it('onLeave receives run with swapped artifact when swap is confirmed', async () => {
+    const onLeave = vi.fn()
+    const fullArtifacts: ArtifactId[] = ['vowel_seeker','crystal_ball','category_scroll','short_sword','blood_dagger','iron_shield','thick_skin','healing_salve']
+    const run = makeRun({ artifacts: fullArtifacts })
+    render(<CombatRewardScreen run={run} coinsEarned={0} pendingPotion={null} pendingArtifact={'gold_tooth' as ArtifactId} onLeave={onLeave} />)
+    // Click the first remove button on the artifact shelf
+    const removeButtons = screen.getAllByRole('button', { name: /remove/i })
+    await userEvent.click(removeButtons[0])
+    // Confirm the swap
+    await userEvent.click(screen.getByRole('button', { name: /confirm/i }))
+    // Click Continue
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+    expect(onLeave).toHaveBeenCalledWith(
+      expect.objectContaining({ artifacts: expect.arrayContaining(['gold_tooth']) })
+    )
   })
 })

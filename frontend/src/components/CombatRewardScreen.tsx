@@ -46,10 +46,13 @@ export default function CombatRewardScreen({ run, coinsEarned, pendingPotion, pe
   }
 
   function handleSwapArtifact(removeId: ArtifactId) {
-    setLocalRun(prev => ({
-      ...prev,
-      artifacts: [...prev.artifacts.filter(id => id !== removeId), pendingArtifact!],
-    }))
+    setLocalRun(prev => {
+      const newArtifacts = [...prev.artifacts]
+      const idx = newArtifacts.indexOf(removeId)
+      if (idx !== -1) newArtifacts.splice(idx, 1)
+      newArtifacts.push(pendingArtifact!)
+      return { ...prev, artifacts: newArtifacts }
+    })
     setArtifactSwapMode(false)
     setRemovingArtifact(null)
   }
@@ -71,7 +74,7 @@ export default function CombatRewardScreen({ run, coinsEarned, pendingPotion, pe
               <p>Found {POTIONS[pendingPotion].emoji} <strong>{POTIONS[pendingPotion].name}</strong>! Pouch full — replace one or skip:</p>
               <div className="combat-reward__swap-options">
                 {run.potions.map((id, i) => (
-                  <button key={i} className="btn-swap-potion" onClick={() => handleSwapPotion(id)}>
+                  <button key={id + '-' + i} className="btn-swap-potion" onClick={() => handleSwapPotion(id)}>
                     Replace {POTIONS[id].emoji} {POTIONS[id].name}
                   </button>
                 ))}
