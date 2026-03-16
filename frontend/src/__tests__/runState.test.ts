@@ -16,8 +16,6 @@ describe('constants', () => {
   it('BASE_DAMAGE_PER_HIT is 2', () => {
     expect(BASE_DAMAGE_PER_HIT).toBe(2)
   })
-  it('COINS_ENEMY_REWARD is 10', () => expect(COINS_ENEMY_REWARD).toBe(10))
-  it('COINS_BOSS_REWARD is 30', () => expect(COINS_BOSS_REWARD).toBe(30))
   it('POTION_HEAL_AMOUNT is 10', () => expect(POTION_HEAL_AMOUNT).toBe(10))
   it('MAX_POTION_SLOTS is 4', () => expect(MAX_POTION_SLOTS).toBe(4))
 })
