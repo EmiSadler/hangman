@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { RunState, ArtifactId } from '../types'
+import type { RunState, ArtifactId, PotionId } from '../types'
 import { sampleArtifacts, type Artifact, ARTIFACTS } from '../artifacts'
 import { POTIONS, type Potion } from '../potions'
 import { MAX_INVENTORY, MAX_POTION_SLOTS } from '../runState'
@@ -16,6 +16,11 @@ export default function ShopArea({ run, onLeave }: Props) {
   const [stock] = useState<Artifact[]>(() => sampleArtifacts(run.artifacts, 4))
   const [pendingSwap, setPendingSwap] = useState<Artifact | null>(null)
   const [pendingRemove, setPendingRemove] = useState<ArtifactId | null>(null)
+  const [potionStock] = useState<Potion[]>(() => {
+    const extras: PotionId[] = ['strength_potion', 'shielding_potion', 'archivists_brew']
+    const shuffled = [...extras].sort(() => Math.random() - 0.5)
+    return [POTIONS['health_potion'], ...shuffled.slice(0, 2).map(id => POTIONS[id])]
+  })
 
   const displayStock = stock.filter(art => !localRun.artifacts.includes(art.id))
 
@@ -97,7 +102,7 @@ export default function ShopArea({ run, onLeave }: Props) {
       </div>
       <div className="shop-area__potions">
         <h3>Potions</h3>
-        {(Object.values(POTIONS) as Potion[]).map(potion => (
+        {potionStock.map(potion => (
           <div key={potion.id} className="shop-area__potion-item">
             <span className="shop-area__item-info">
               {potion.emoji} <strong>{potion.name}</strong> — {potion.description}

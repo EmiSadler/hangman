@@ -178,4 +178,16 @@ describe('ShopArea', () => {
     await userEvent.click(screen.getByRole('button', { name: /buy.*health potion/i }))
     expect(onLeave).not.toHaveBeenCalled()
   })
+
+  it('always shows health potion in shop', () => {
+    render(<ShopArea run={makeRun({ coins: 99 })} onLeave={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /buy.*health potion/i })).toBeInTheDocument()
+  })
+
+  it('shows exactly 3 potions in shop (health + 2 random)', () => {
+    render(<ShopArea run={makeRun({ coins: 99 })} onLeave={vi.fn()} />)
+    const potionSection = document.querySelector('.shop-area__potions')!
+    const buyButtons = potionSection.querySelectorAll('button[aria-label^="Buy"]')
+    expect(buyButtons).toHaveLength(3)
+  })
 })
