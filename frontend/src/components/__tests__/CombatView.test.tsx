@@ -605,6 +605,18 @@ describe('CombatView', () => {
     await waitFor(() => screen.getByRole('button', { name: /play again/i }))
   })
 
+  it('does not show "You Won" when player dies from a wrong guess', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, json: async () => mockGuessResponse({ correct: false, guessed_letters: ['z'], occurrences: 0 }),
+    }))
+    // DAMAGE_PER_WRONG = 2, so a berserker with 2 HP dies on one wrong guess
+    const run = { ...buildRun('berserker'), hp: 2 }
+    render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }))
+    await waitFor(() => screen.getByRole('button', { name: /play again/i }))
+    expect(screen.queryByText(/you won/i)).not.toBeInTheDocument()
+  })
+
   it('shows summoning message with remaining HP when word solved but enemy alive', async () => {
     // floor=3, word='cat' (3 letters) → enemy HP = 3*3*2 = 18
     // Guess 't' (1 occ, 2 dmg → HP 18→16), backend returns status='won' → summoning

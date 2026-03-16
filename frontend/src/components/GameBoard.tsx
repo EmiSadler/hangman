@@ -152,13 +152,18 @@ export default function GameBoard({ initialState, onGuessResult, onWordSolved, o
           </form>
         </>
       )}
-      {(isWordSolved || !!combatOver) && (
+      {isWordSolved && (
         <GameResult
           status="won"
           word={initialState.word}
           onPlayAgain={onPlayAgain}
           buttonLabel={playAgainLabel}
         />
+      )}
+      {!!combatOver && !isWordSolved && (
+        <button className="btn-difficulty" onClick={onPlayAgain}>
+          {playAgainLabel ?? 'Continue'}
+        </button>
       )}
     </div>
   )
