@@ -110,6 +110,7 @@ describe('App', () => {
   })
 
   it('loads a fresh game board after clicking Continue following a won combat', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
     const game1 = { game_id: 'game-1', masked_word: '_ _ _', word: 'cat', category: 'general', first_letter: 'c', guessed_letters: [] }
     const wonGuess = { correct: true, masked_word: 'c a t', guessed_letters: ['c'], status: 'won' }
     const game2 = { game_id: 'game-2', masked_word: '_ _ _ _ _', word: 'brave', category: 'general', first_letter: 'b', guessed_letters: [] }
@@ -131,11 +132,83 @@ describe('App', () => {
     await userEvent.click(screen.getByRole('button', { name: 'A' }))
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
 
+    // CombatView Continue → goes to combat_reward phase (no rewards since random=0.9)
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+    // Should now be on the Rewards screen
+    await waitFor(() => screen.getByRole('heading', { name: /rewards/i }))
+
+    // Click Continue on the reward screen → goes to next combat
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
 
     // Fresh game board should be loaded — keyboard visible, old result gone
     await waitFor(() => expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument())
     expect(screen.queryByText(/you won/i)).not.toBeInTheDocument()
+  })
+
+  it('transitions to combat_reward phase after winning a fight', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+    const game1 = { game_id: 'game-1', masked_word: '_ _ _', word: 'cat', category: 'general', first_letter: 'c', guessed_letters: [] }
+    const wonGuess = { correct: true, masked_word: 'c a t', guessed_letters: ['c'], status: 'won' }
+
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ session_id: 'test-session' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => game1 })
+      .mockResolvedValueOnce({ ok: true, json: async () => wonGuess }),
+    )
+
+    render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: /enter floor 1/i }))
+    await userEvent.click(screen.getByRole('button', { name: /enter floor 1/i }))
+    await waitFor(() => screen.getByRole('button', { name: 'A' }))
+
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => screen.getByRole('button', { name: /continue/i }))
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+    // Should show the Rewards screen
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /rewards/i })).toBeInTheDocument()
+    })
+  })
+
+  it('continues to next room after clicking Continue on reward screen', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+    const game1 = { game_id: 'game-1', masked_word: '_ _ _', word: 'cat', category: 'general', first_letter: 'c', guessed_letters: [] }
+    const wonGuess = { correct: true, masked_word: 'c a t', guessed_letters: ['c'], status: 'won' }
+    const game2 = { game_id: 'game-2', masked_word: '_ _ _ _ _', word: 'brave', category: 'general', first_letter: 'b', guessed_letters: [] }
+
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ session_id: 'test-session' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => game1 })
+      .mockResolvedValueOnce({ ok: true, json: async () => wonGuess })
+      .mockResolvedValueOnce({ ok: true, json: async () => game2 }),
+    )
+
+    render(<App />)
+    await userEvent.click(screen.getByText(/berserker/i))
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }))
+    await waitFor(() => screen.getByRole('button', { name: /enter floor 1/i }))
+    await userEvent.click(screen.getByRole('button', { name: /enter floor 1/i }))
+    await waitFor(() => screen.getByRole('button', { name: 'A' }))
+
+    await userEvent.click(screen.getByRole('button', { name: 'A' }))
+    await waitFor(() => screen.getByRole('button', { name: /continue/i }))
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+    // Should be on rewards screen
+    await waitFor(() => screen.getByRole('heading', { name: /rewards/i }))
+
+    // Click Continue on reward screen
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+    // Should have moved past the reward screen to next combat
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: /rewards/i })).not.toBeInTheDocument()
+    })
+    expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
   })
 
   it('shows Give Up button during an active run', async () => {

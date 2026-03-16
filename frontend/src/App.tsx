@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
-import type { GameState, GameStatus, RunState, RunScore, Room, ClassName } from './types'
+import type { GameState, GameStatus, RunState, RunScore, Room, ClassName, PotionId, ArtifactId } from './types'
 import {
   buildRun, buildRooms, loadRun, saveRun, clearRun,
   loadRunScore, saveRunScore, computeRoomsCleared,
   pickFloorThemes,
   SCORE_KEY,
+  COINS_ENEMY_REWARD, COINS_BOSS_REWARD,
+  REWARD_GOLD_ENEMY_CHANCE,
+  REWARD_POTION_ENEMY_CHANCE, REWARD_ARTIFACT_ENEMY_CHANCE,
+  REWARD_POTION_BOSS_CHANCE, REWARD_ARTIFACT_BOSS_CHANCE,
 } from './runState'
 import RunSetup from './components/RunSetup'
 import HowToPlayScreen from './components/HowToPlayScreen'
@@ -16,9 +20,12 @@ import ShopArea from './components/ShopArea'
 import RunResult from './components/RunResult'
 import FloorIntroScreen from './components/FloorIntroScreen'
 import VictoryScreen from './components/VictoryScreen'
+import CombatRewardScreen from './components/CombatRewardScreen'
+import { sampleArtifacts } from './artifacts'
+import { POTIONS } from './potions'
 import './App.css'
 
-type AppPhase = 'how_to_play' | 'idle' | 'floor_intro' | 'combat' | 'rest' | 'treasure' | 'shop' | 'run_won' | 'run_lost'
+type AppPhase = 'how_to_play' | 'idle' | 'floor_intro' | 'combat' | 'combat_reward' | 'rest' | 'treasure' | 'shop' | 'run_won' | 'run_lost'
 
 export default function App() {
   const [phase, setPhase] = useState<AppPhase>(() =>
@@ -30,6 +37,11 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [defeatedBossName, setDefeatedBossName] = useState<string | null>(null)
   const [starting, setStarting] = useState(false)
+  const [pendingRewards, setPendingRewards] = useState<{
+    coinsEarned: number
+    potion: PotionId | null
+    artifact: ArtifactId | null
+  } | null>(null)
 
   // Resume saved run on mount
   useEffect(() => {
@@ -131,6 +143,11 @@ export default function App() {
     await enterRoom(run, run.rooms[run.roomIndex])
   }
 
+  function sampleRandomPotion(): PotionId {
+    const ids = Object.keys(POTIONS) as PotionId[]
+    return ids[Math.floor(Math.random() * ids.length)]
+  }
+
   async function handleCombatEnd(updatedRun: RunState, bossName?: string) {
     const word = currentGame?.word
     if (word) {
@@ -140,9 +157,10 @@ export default function App() {
     const updatedRooms = updatedRun.rooms.map((r, i) =>
       i === roomIndex ? { ...r, completed: true } : r,
     )
+    const runWithRooms: RunState = { ...updatedRun, rooms: updatedRooms }
 
     if (updatedRun.hp <= 0) {
-      const finalRun: RunState = { ...updatedRun, rooms: updatedRooms, status: 'lost' }
+      const finalRun: RunState = { ...runWithRooms, status: 'lost' }
       clearRun()
       setRun(finalRun)
       setScore(prev => {
@@ -158,9 +176,33 @@ export default function App() {
       return
     }
 
+    // Roll rewards
+    const isBoss = updatedRun.rooms[roomIndex].type === 'boss'
+    const coinsEarned = (isBoss || Math.random() < REWARD_GOLD_ENEMY_CHANCE)
+      ? (isBoss ? COINS_BOSS_REWARD : COINS_ENEMY_REWARD)
+      : 0
+    const potionChance = isBoss ? REWARD_POTION_BOSS_CHANCE : REWARD_POTION_ENEMY_CHANCE
+    const artifactChance = isBoss ? REWARD_ARTIFACT_BOSS_CHANCE : REWARD_ARTIFACT_ENEMY_CHANCE
+    const pendingPotion: PotionId | null = Math.random() < potionChance ? sampleRandomPotion() : null
+    const artifactPool = sampleArtifacts(runWithRooms.artifacts, 1)
+    const pendingArtifact: ArtifactId | null = artifactPool.length > 0 && Math.random() < artifactChance
+      ? artifactPool[0].id
+      : null
+
+    const runWithCoins: RunState = { ...runWithRooms, coins: runWithRooms.coins + coinsEarned }
+    saveRun(runWithCoins)
+    setRun(runWithCoins)
+    setDefeatedBossName(bossName ?? null)
+    setPendingRewards({ coinsEarned, potion: pendingPotion, artifact: pendingArtifact })
+    setPhase('combat_reward')
+  }
+
+  async function handleRewardLeave(updatedRun: RunState) {
+    const roomIndex = updatedRun.roomIndex
+
     if (roomIndex === 11) {
       if (updatedRun.floor === 3) {
-        const finalRun: RunState = { ...updatedRun, rooms: updatedRooms, status: 'won' }
+        const finalRun: RunState = { ...updatedRun, status: 'won' }
         clearRun()
         setRun(finalRun)
         setScore(prev => {
@@ -172,7 +214,6 @@ export default function App() {
           saveRunScore(next)
           return next
         })
-        setDefeatedBossName(bossName ?? null)
         setPhase('run_won')
         return
       } else {
@@ -186,13 +227,12 @@ export default function App() {
         }
         saveRun(nextFloorRun)
         setRun(nextFloorRun)
-        setDefeatedBossName(bossName ?? null)
         setPhase('floor_intro')
         return
       }
     }
 
-    const nextRun: RunState = { ...updatedRun, rooms: updatedRooms, roomIndex: roomIndex + 1 }
+    const nextRun: RunState = { ...updatedRun, roomIndex: roomIndex + 1 }
     saveRun(nextRun)
     setRun(nextRun)
     await enterRoom(nextRun, nextRun.rooms[nextRun.roomIndex])
@@ -269,7 +309,7 @@ export default function App() {
     setPhase('idle')
   }
 
-  const showProgress = phase !== 'how_to_play' && phase !== 'idle' && phase !== 'floor_intro' && phase !== 'run_won' && phase !== 'run_lost'
+  const showProgress = phase !== 'how_to_play' && phase !== 'idle' && phase !== 'floor_intro' && phase !== 'combat_reward' && phase !== 'run_won' && phase !== 'run_lost'
 
   return (
     <div className="app">
@@ -325,6 +365,16 @@ export default function App() {
           initialState={currentGame}
           floor={run.floor}
           onCombatEnd={handleCombatEnd}
+        />
+      )}
+
+      {phase === 'combat_reward' && run && pendingRewards && (
+        <CombatRewardScreen
+          run={run}
+          coinsEarned={pendingRewards.coinsEarned}
+          pendingPotion={pendingRewards.potion}
+          pendingArtifact={pendingRewards.artifact}
+          onLeave={handleRewardLeave}
         />
       )}
 
