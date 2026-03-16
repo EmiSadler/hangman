@@ -2,8 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
   getFloorLayout, buildRooms, buildRun, loadRun, saveRun, clearRun,
   loadRunScore, saveRunScore, enemyHp, computeRoomsCleared,
-  MAX_HP, DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT, COINS_PER_ENEMY, COINS_PER_BOSS, POTION_HEAL_AMOUNT, MAX_POTION_SLOTS,
+  MAX_HP, DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT, POTION_HEAL_AMOUNT, MAX_POTION_SLOTS,
   pickFloorThemes,
+  COINS_ENEMY_REWARD, COINS_BOSS_REWARD,
+  REWARD_GOLD_ENEMY_CHANCE, REWARD_POTION_ENEMY_CHANCE, REWARD_ARTIFACT_ENEMY_CHANCE,
+  REWARD_POTION_BOSS_CHANCE, REWARD_ARTIFACT_BOSS_CHANCE,
 } from '../runState'
 import type { ClassName } from '../types'
 
@@ -13,8 +16,8 @@ describe('constants', () => {
   it('BASE_DAMAGE_PER_HIT is 2', () => {
     expect(BASE_DAMAGE_PER_HIT).toBe(2)
   })
-  it('COINS_PER_ENEMY is 5', () => expect(COINS_PER_ENEMY).toBe(5))
-  it('COINS_PER_BOSS is 20', () => expect(COINS_PER_BOSS).toBe(20))
+  it('COINS_ENEMY_REWARD is 10', () => expect(COINS_ENEMY_REWARD).toBe(10))
+  it('COINS_BOSS_REWARD is 30', () => expect(COINS_BOSS_REWARD).toBe(30))
   it('POTION_HEAL_AMOUNT is 10', () => expect(POTION_HEAL_AMOUNT).toBe(10))
   it('MAX_POTION_SLOTS is 4', () => expect(MAX_POTION_SLOTS).toBe(4))
 })
@@ -234,5 +237,19 @@ describe('buildRun with className', () => {
   it('vowel_mage and berserker start with 50 HP', () => {
     expect(buildRun('vowel_mage').maxHp).toBe(50)
     expect(buildRun('berserker').maxHp).toBe(50)
+  })
+})
+
+describe('reward constants', () => {
+  it('exports correct enemy reward values', () => {
+    expect(COINS_ENEMY_REWARD).toBe(10)
+    expect(REWARD_GOLD_ENEMY_CHANCE).toBe(0.75)
+    expect(REWARD_POTION_ENEMY_CHANCE).toBe(0.10)
+    expect(REWARD_ARTIFACT_ENEMY_CHANCE).toBe(0.01)
+  })
+  it('exports correct boss reward values', () => {
+    expect(COINS_BOSS_REWARD).toBe(30)
+    expect(REWARD_POTION_BOSS_CHANCE).toBe(0.50)
+    expect(REWARD_ARTIFACT_BOSS_CHANCE).toBe(0.20)
   })
 })

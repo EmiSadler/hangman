@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { GameState, Room, RunState, ClassName, ArtifactId, ThemeId, PotionId } from '../types'
 import {
   DAMAGE_PER_WRONG, BASE_DAMAGE_PER_HIT,
-  COINS_PER_ENEMY, COINS_PER_BOSS, enemyHp,
+  enemyHp,
   POTION_HEAL_AMOUNT, POTION_STRENGTH_BONUS, POTION_SHIELD_AMOUNT, WRONG_SOLVE_PENALTY,
 } from '../runState'
 import { POTIONS } from '../potions'
@@ -419,22 +419,22 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
   }
 
   function finishCombat(won: boolean, hpOverride?: number) {
-    let coinsEarned = won ? (room.type === 'boss' ? COINS_PER_BOSS : COINS_PER_ENEMY) : 0
     let effectiveHp = hpOverride ?? displayRun.hp
+    let bonusCoins = 0
 
     if (won) {
       if (run.artifacts.includes('healing_salve')) {
         effectiveHp = Math.min(displayRun.maxHp, effectiveHp + 3)
       }
       if (run.artifacts.includes('gold_tooth')) {
-        coinsEarned += 5
+        bonusCoins = 5
       }
     }
 
     const updated: RunState = {
       ...displayRun,
       hp: effectiveHp,
-      coins: displayRun.coins + coinsEarned,
+      coins: displayRun.coins + bonusCoins,
       status: effectiveHp <= 0 ? 'lost' : run.status,
     }
     setPendingRun(updated)

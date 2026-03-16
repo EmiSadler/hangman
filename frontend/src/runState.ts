@@ -10,8 +10,13 @@ export const CLASS_MAX_HP: Record<import('./types').ClassName, number> = {
 }
 export const DAMAGE_PER_WRONG = 2
 export const BASE_DAMAGE_PER_HIT = 2
-export const COINS_PER_ENEMY = 5
-export const COINS_PER_BOSS = 20
+export const COINS_ENEMY_REWARD = 10
+export const COINS_BOSS_REWARD = 30
+export const REWARD_GOLD_ENEMY_CHANCE = 0.75
+export const REWARD_POTION_ENEMY_CHANCE = 0.10
+export const REWARD_ARTIFACT_ENEMY_CHANCE = 0.01
+export const REWARD_POTION_BOSS_CHANCE = 0.50
+export const REWARD_ARTIFACT_BOSS_CHANCE = 0.20
 export const POTION_HEAL_AMOUNT = 10
 export const POTION_STRENGTH_BONUS = 2
 export const POTION_SHIELD_AMOUNT = 5

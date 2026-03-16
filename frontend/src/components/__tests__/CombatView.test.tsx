@@ -90,7 +90,7 @@ describe('CombatView', () => {
     await userEvent.click(screen.getByRole('button', { name: 'T' }))
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
-    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 5 }), undefined)
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 0 }), undefined)
   })
 
   it('calls onCombatEnd with a non-empty bossName string when boss fight is won', async () => {
@@ -104,7 +104,7 @@ describe('CombatView', () => {
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
     expect(onCombatEnd).toHaveBeenCalledWith(
-      expect.objectContaining({ coins: 20 }),
+      expect.objectContaining({ coins: 0 }),
       expect.stringMatching(/\S+/),
     )
   })
@@ -222,7 +222,7 @@ describe('CombatView', () => {
     // enemy HP = 0 → useEffect fires finishCombat → combatDone=true → Continue shown
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
-    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 5 }), undefined)
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 0 }), undefined)
   })
 
   it('Iron Shield starts combat with 2 shield', () => {
@@ -417,7 +417,7 @@ describe('CombatView', () => {
   })
 
   it('Gold Tooth awards +5 bonus coins after combat win', async () => {
-    // COINS_PER_ENEMY=5 + gold_tooth 5 = 10 total
+    // gold_tooth 5 = 5 total (base coins handled in App.tsx)
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true, json: async () => mockGuessResponse({
         masked_word: 'c a t', correct: true,
@@ -430,7 +430,7 @@ describe('CombatView', () => {
     await userEvent.click(screen.getByRole('button', { name: 'T' }))
     await waitFor(() => screen.getByRole('button', { name: /continue/i }))
     await userEvent.click(screen.getByRole('button', { name: /continue/i }))
-    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 10 }), undefined)
+    expect(onCombatEnd).toHaveBeenCalledWith(expect.objectContaining({ coins: 5 }), undefined)
   })
 
   it('Ancient Codex allows Archivist to use Cross Reference a second time', async () => {
