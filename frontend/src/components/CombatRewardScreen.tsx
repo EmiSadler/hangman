@@ -73,7 +73,7 @@ export default function CombatRewardScreen({ run, coinsEarned, pendingPotion, pe
             <>
               <p>Found {POTIONS[pendingPotion].emoji} <strong>{POTIONS[pendingPotion].name}</strong>! Pouch full — replace one or skip:</p>
               <div className="combat-reward__swap-options">
-                {run.potions.map((id, i) => (
+                {localRun.potions.map((id, i) => (
                   <button key={id + '-' + i} className="btn-swap-potion" onClick={() => handleSwapPotion(id)}>
                     Replace {POTIONS[id].emoji} {POTIONS[id].name}
                   </button>
