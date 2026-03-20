@@ -1,6 +1,13 @@
 import { useState } from 'react'
-import type { RunState, ArtifactId, PotionId } from '../types'
+import type { RunState, ArtifactId, PotionId, ThemeId } from '../types'
 import { MAX_INVENTORY, MAX_POTION_SLOTS } from '../runState'
+
+const EMPTY_REWARD_FLAVOUR: Record<ThemeId, string> = {
+  space:  'You search the wreckage — cold vacuum and scattered debris. The void gives back nothing.',
+  swamp:  'You sift through the remains — mud, rot, and the stench of the mire. Nothing worth taking.',
+  desert: 'You search the rubble. The wind already claimed anything of worth. Only dust fills your hands.',
+  jungle: 'You search the clearing. Roots and vines have swallowed everything. The canopy watches, unmoved.',
+}
 import { POTIONS } from '../potions'
 import { ARTIFACTS } from '../artifacts'
 import ArtifactShelf from './ArtifactShelf'
@@ -58,10 +65,16 @@ export default function CombatRewardScreen({ run, coinsEarned, pendingPotion, pe
   }
 
   const canContinue = !potionSwapMode && !artifactSwapMode
+  const noRewards = coinsEarned === 0 && !pendingPotion && !pendingArtifact
+  const theme = run.floorThemes[run.floor - 1]
 
   return (
     <div className="combat-reward">
       <h2 className="combat-reward__title">Rewards</h2>
+
+      {noRewards && (
+        <p className="combat-reward__empty">{EMPTY_REWARD_FLAVOUR[theme]}</p>
+      )}
 
       {coinsEarned > 0 && (
         <p className="combat-reward__coins">💰 +{coinsEarned} coins</p>
