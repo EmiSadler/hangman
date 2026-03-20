@@ -200,4 +200,99 @@ doctor,occupation
 surgeon,occupation
 sweatshirt,clothing
 waistcoat,clothing
+elephant,animal
+flamingo,animal
+crocodile,animal
+cheetah,animal
+scorpion,animal
+gorilla,animal
+hedgehog,animal
+dolphin,animal
+peacock,animal
+leopard,animal
+parrot,animal
+tortoise,animal
+hamster,animal
+blizzard,nature
+avalanche,nature
+thunder,nature
+lightning,nature
+volcano,nature
+meadow,nature
+canyon,nature
+glacier,nature
+swamp,nature
+fossil,nature
+avocado,food and drink
+spaghetti,food and drink
+burrito,food and drink
+smoothie,food and drink
+croissant,food and drink
+broccoli,food and drink
+raspberry,food and drink
+watermelon,food and drink
+cinnamon,food and drink
+marmalade,food and drink
+stadium,location
+museum,location
+library,location
+harbour,location
+cemetery,location
+cathedral,location
+vineyard,location
+ambulance,transportation
+hovercraft,transportation
+catamaran,transportation
+snowmobile,transportation
+zeppelin,transportation
+cardigan,clothing
+raincoat,clothing
+sandals,clothing
+leggings,clothing
+swimsuit,clothing
+turtleneck,clothing
+blazer,clothing
+astronaut,occupation
+scientist,occupation
+architect,occupation
+journalist,occupation
+librarian,occupation
+firefighter,occupation
+mechanic,occupation
+veterinarian,occupation
+eclipse,space
+cosmos,space
+nebula,space
+quasar,space
+exoplanet,space
+crimson,colour
+scarlet,colour
+emerald,colour
+violet,colour
+indigo,colour
+lavender,colour
+maroon,colour
+whisper,action
+stumble,action
+tremble,action
+explore,action
+wander,action
+navigate,action
+survive,action
+magnificent,adjective
+mysterious,adjective
+tremendous,adjective
+incredible,adjective
+courageous,adjective
+enormous,adjective
+ferocious,adjective
+hilarious,adjective
+volleyball,sport
+badminton,sport
+gymnastics,sport
+wrestling,sport
+archery,sport
+cricket,sport
+surfing,sport
+marathon,sport
 
