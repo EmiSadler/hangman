@@ -923,6 +923,15 @@ describe('CombatView', () => {
       expect(screen.getByText(/⚔\s*5/)).toBeInTheDocument()
     })
 
+    it('archivist ATK display does not include passive bonus (matches PlayerStats)', () => {
+      // Word with 5+ letters so hiddenCount >= 5 at start — passive would trigger if included
+      const longGame: GameState = { ...mockGame, word: 'castle', maskedWord: '_ _ _ _ _ _', firstLetter: 'c' }
+      const run = { ...buildRun('archivist'), bonusDamage: 1 }
+      render(<CombatView run={run} room={enemyRoom()} initialState={longGame} floor={1} onCombatEnd={vi.fn()} />)
+      // BASE(2) + bonusDamage(1) = 3; passive (+1) must NOT appear in displayed ATK
+      expect(screen.getByText(/⚔\s*3/)).toBeInTheDocument()
+    })
+
     it('enemy ATK decreases with thick_skin artifact', () => {
       const run = { ...buildRun('berserker'), artifacts: ['thick_skin' as ArtifactId] }
       render(<CombatView run={run} room={enemyRoom()} initialState={mockGame} floor={1} onCombatEnd={vi.fn()} />)

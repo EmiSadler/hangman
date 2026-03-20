@@ -561,7 +561,6 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
     let dmg = BASE_DAMAGE_PER_HIT
     if (run.className === 'berserker') dmg += rage
     if (run.className === 'rogue') dmg += combo
-    if (run.className === 'archivist' && hiddenCount >= 5) dmg += 1
     dmg += displayRun.bonusDamage + potionDamageBonus
     if (displayRun.artifacts.includes('short_sword')) dmg += 1
     return dmg
@@ -663,6 +662,7 @@ export default function CombatView({ run, room, initialState, floor, onCombatEnd
           <span>Category: {currentGame.category}</span>
           <span>First letter: {currentGame.firstLetter.toUpperCase()}</span>
           <span>{currentGame.word.length} letters</span>
+          {hiddenCount >= 5 && <span>⚔ +1 (passive)</span>}
         </div>
       )}
       {(vowelCount !== null || crystalBallLetter !== null || showCategoryScroll || revealedCategory) && (
